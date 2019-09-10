@@ -3,20 +3,20 @@ import os
 
 import scrape
 
-conn = sqlite3.connect("fencing.db")
-c = conn.cursor() # get cursor to file
-
-def init_file():
-    c.execute("DROP TABLE fencers")
-    c.execute("DROP TABLE games")
+def init_file(c):
+    try:
+        c.execute("DROP TABLE fencers")
+        c.execute("DROP TABLE games")
+    except sqlite3.OperationalError:
+        print("attempt to reinit noninited file")
     c.execute("""CREATE TABLE fencers (
     id int,
     name TEXT,
-    victories int,
-    victories_over_matches float,
-    touches_scored int,
-    touches_received int,
-    indicator int,
+    victories TEXT,
+    victories_over_matches TEXT,
+    touches_scored TEXT,
+    touches_received TEXT,
+    indicator TEXT,
     match_scores TEXT,
     match_against TEXT
 );""")
@@ -28,12 +28,13 @@ def init_file():
     round TEXT
 );""")
 
-init_file()
-
-for event in scrape.get_events():
-    for (pools, tableaus) in scrape.scrape_data(event):
+for event, event_url in scrape.get_events():
+    conn = sqlite3.connect(f"dbs/{event}.db")
+    c = conn.cursor()
+    init_file(c)
+    for (pools, tableaus) in scrape.scrape_data(event_url):
         c.executemany('INSERT INTO fencers VALUES (?,?,?,?,?,?,?,?,?)', pools)
         c.executemany('INSERT INTO games VALUES (?,?,?,?,?)', tableaus)
 
-conn.commit()
-conn.close()
+    conn.commit()
+    conn.close()

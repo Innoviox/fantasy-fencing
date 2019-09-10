@@ -5,7 +5,8 @@ from time     import sleep
 from models   import Fencer, Game
 
 BASE = "https://www.fencingtimelive.com"
-EVENT = "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
+#EVENT = "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
+EVENT_SEARCH = "https://member.usafencing.org/search/tournaments/national?search=&filter_by_weapon=2&filter_by_gender=3&event_scopes=&filter_by_type=1&filter_by_event_type=&filter_by_show=past&designated="
 options = webdriver.ChromeOptions()
 #options.add_argument('headless')
 
@@ -28,9 +29,10 @@ def parse_pools(driver):
             name = row.find("span", class_="poolCompName").text # extract text
             matches = [i.find("span").text for i in row.find_all("td", class_="poolScore")]
             stats = [i.text for i in row.find_all("td", class_="poolResult")] # extract data
-            v, v_m, ts, tr, ind = stats # extract statistics
+            v, v_m, ts, tr, ind = map(str, stats) # extract statistics
             yield [fencer_id, name, v, v_m, ts, tr, ind, ','.join(matches), ','.join(i for i in players if i != name)]
             fencer_id += 1
+    driver.close()
 
 def parse_tableau(driver):
     sleep(3) # wait for page to load
@@ -110,24 +112,56 @@ def parse_tableau(driver):
             else:
                 yield [game_id, c, d, e[0], a]
             game_id += 1
+
+    driver.close()
         
-    
+def combine_pools(pools):
+    super_pool = []
+    for pool in pools:
+        for f in pool:
+            old_fencer = [i for i in super_pool if i[1] == f[1]]
+            if old_fencer:
+                old_fencer = old_fencer[0]
+                
+                for i in range(2, len(f)):
+                    old_fencer[i] += "-" + f[i]
+                    
+                super_pool.append(old_fencer)
+            else:
+                super_pool.append(f)
+    yield from super_pool
+        
+
+def combine_tableaux(tabls):
+    for t in tabls:
+        yield from t
         
 def scrape_data(event_url):
     # Retrieve the full page
     full_soup = make_soup(event_url)
     
     # Retrieve pools link and tableau link
-    pool_url = full_soup.find_all("img", src="/img/poolInverse.png")[0].findParent().attrs['href']
-    pool_soup = make_soup(BASE+pool_url, headless=True)
+    pools = []
+    for pool in full_soup.find_all("img", src="/img/poolInverse.png"):
+        pool_url = pool.findParent().attrs['href']
+        pool_soup = make_soup(BASE+pool_url, headless=True)
+        pools.append(parse_pools(pool_soup))
+
+    tabls = []
+    for tabl in full_soup.find_all("img", src="/img/tableauInverse.png"):
+        tabl_url = tabl.findParent().attrs['href']
+        tabl_soup = make_soup(BASE+tabl_url, headless=True)
+        tabls.append(parse_tableau(tabl_soup))
     
-    tabl_url = full_soup.find_all("img", src="/img/tableauInverse.png")[0].findParent().attrs['href']
-    tabl_soup = make_soup(BASE+tabl_url, headless=True)
-    
-    yield parse_pools(pool_soup),parse_tableau(tabl_soup)
+    yield combine_pools(pools), combine_tableaux(tabls)
 
 def get_events():
-    return [EVENT]
+    # return [EVENT]
+    # events = make_soup(EVENT_SEARCH)
+    # for row in events.find("table").find_all("tr"):
+    #     yield row.find("a", class_="d-block").text, row.find("a", class_="btn btn-sm btn-primary".split()).text
+    yield "April Championship and NAC", "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
+    yield "January NAC", "https://www.fencingtimelive.com/events/results/9828E06403B741498C70FB121ACA050B"    
 
 if __name__ == "__main__":
     for (pools, tableaus) in map(scrape_data, get_events()):
