@@ -7,3 +7,8 @@ class Fencer(BaseModel):
     touches_scored: int
     touches_received: int
     indicator: int
+
+class Game(BaseModel):
+    p1: str
+    p2: str
+    score: str
