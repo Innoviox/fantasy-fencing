@@ -162,8 +162,3 @@ def get_events():
     #     yield row.find("a", class_="d-block").text, row.find("a", class_="btn btn-sm btn-primary".split()).text
     yield "April Championship and NAC", "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
     yield "January NAC", "https://www.fencingtimelive.com/events/results/9828E06403B741498C70FB121ACA050B"    
-
-if __name__ == "__main__":
-    for (pools, tableaus) in map(scrape_data, get_events()):
-        for game in tableaus:
-            print(game)
