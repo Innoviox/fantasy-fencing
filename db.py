@@ -8,6 +8,7 @@ c = conn.cursor() # get cursor to file
 
 def init_file():
     c.execute("DROP TABLE fencers")
+    c.execute("DROP TABLE games")
     c.execute("""CREATE TABLE fencers (
     id int,
     name TEXT,
@@ -15,13 +16,24 @@ def init_file():
     victories_over_matches float,
     touches_scored int,
     touches_received int,
-    indicator int
+    indicator int,
+    match_scores TEXT,
+    match_against TEXT
+);""")
+    c.execute("""CREATE TABLE games (
+    id int,
+    p1 TEXT,
+    p2 TEXT,
+    score TEXT,
+    round TEXT
 );""")
 
 init_file()
 
-for (pools, tableaus) in map(scrape.scrape_data, scrape.get_events()):
-    c.executemany('INSERT INTO fencers VALUES (?,?,?,?,?,?,?)', pools)
+for event in scrape.get_events():
+    for (pools, tableaus) in scrape.scrape_data(event):
+        c.executemany('INSERT INTO fencers VALUES (?,?,?,?,?,?,?,?,?)', pools)
+        c.executemany('INSERT INTO games VALUES (?,?,?,?,?)', tableaus)
 
 conn.commit()
 conn.close()
