@@ -12,3 +12,4 @@ class Game(BaseModel):
     p1: str
     p2: str
     score: str
+    winner: str

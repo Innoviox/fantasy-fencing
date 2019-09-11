@@ -2,7 +2,6 @@ from bs4      import BeautifulSoup
 from selenium import webdriver
 from requests import get
 from time     import sleep
-from models   import Fencer, Game
 
 BASE = "https://www.fencingtimelive.com"
 #EVENT = "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
@@ -99,18 +98,25 @@ def parse_tableau(driver):
         #offset += 1
         done.extend(round_names)
 
-    del games['']
+    # del games['']
     
     game_id = 0
     for a, b in games.items():
+        if a == '': continue
+        else:
+            next_name = round_names[round_names.index(a) + 1]
+            for i, j in enumerate(games[next_name]):
+                b[i * 2].append(j[0])
+                if not next_name == '':
+                    b[i * 2 + 1].append(j[1] if not j[1][0].isdigit() else j[2])
         for game in b:
-            c, d, *e = game
+            c, d, *e, w = game
             if not e:
-                yield [game_id, c, d, "0-0", a]
+                yield [game_id, c, d, "0-0", a, w]
             elif d[0].isdigit():
-                yield [game_id, c, e[0], d, a]
+                yield [game_id, c, e[0], d, a, w]
             else:
-                yield [game_id, c, d, e[0], a]
+                yield [game_id, c, d, e[0], a, w]
             game_id += 1
 
     driver.close()

@@ -25,7 +25,8 @@ def init_file(c):
     p1 TEXT,
     p2 TEXT,
     score TEXT,
-    round TEXT
+    round TEXT,
+    winner TEXT
 );""")
 
 for event, event_url in scrape.get_events():
@@ -34,7 +35,7 @@ for event, event_url in scrape.get_events():
     init_file(c)
     for (pools, tableaus) in scrape.scrape_data(event_url):
         c.executemany('INSERT INTO fencers VALUES (?,?,?,?,?,?,?,?,?)', pools)
-        c.executemany('INSERT INTO games VALUES (?,?,?,?,?)', tableaus)
+        c.executemany('INSERT INTO games VALUES (?,?,?,?,?,?)', tableaus)
 
     conn.commit()
     conn.close()
