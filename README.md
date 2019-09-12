@@ -28,6 +28,6 @@ The aggregated database will store fencers in the following format:
 
 - `id`, `name`, `birthdate`, `club`, `country`: the values from the csv database
 - `ratings`: comma-joined ratings in saber, epee, and foil (note that for `sqlite3-unpacking` purposes ratings is between club and country)
-- `tournaments`, `stats`: `:`-separated list of tournaments and the statistics for those tournaments
-- `matches`: the matches played at a given tournament. games in a single tournament are separated by `,`, and tournaments are separated by `-`. There is no distinction for day 1 or day 2. The `match` format is: {against}/{score}/{1 if winner else 0}
+- `tournaments`, `stats`: `::`-separated list of tournaments and the statistics for those tournaments (stats are `'.'` joined
+- `matches`: the matches played at a given tournament. games in a single tournament are separated by `,`, and tournaments are separated by `::`. There is no distinction for day 1 or day 2. The `match` format is: {against}/{score}/{1 if winner else 0}
 

@@ -30,21 +30,22 @@ full_cursor = full_connection.cursor()
 def _init_cursor():
     try:
         full_cursor.execute("DROP TABLE fencers;")
-    except sqlite3.OperationalError:
+    except sqlite3.OperationalError as s3oe:
+        print(s3oe)
         pass
-
     full_cursor.execute("""CREATE TABLE fencers (
     id int,
     name TEXT,
     last_name TEXT,
     birthdate int,
-    club TEXT
+    club TEXT,
     ratings TEXT,
     country TEXT,
-    tournaments TEXT DEFAULT '',
-    stats TEXT DEFAULT '',
-    matches TEXT DEFAULT ''
+    tournaments TEXT,
+    stats TEXT,
+    matches TEXT
 );""")
+    full_connection.commit()
 
 def find_fencer(name):
     csv_reader = csv.DictReader(open("dbs/members.csv"))
@@ -56,9 +57,9 @@ def find_fencer(name):
 
 def get_fencer(name, lname=None):
     if lname:
-        full_cursor.execute(f"SELECT * FROM fencers WHERE last_name=\"{lname}\"")
+        full_cursor.execute(f"SELECT * FROM fencers WHERE last_name=?", [lname])
         return full_cursor.fetchone()
-    full_cursor.execute(f"SELECT * FROM fencers WHERE name=\"{name}\"")
+    full_cursor.execute(f"SELECT * FROM fencers WHERE name = ?", [name])
     return full_cursor.fetchone()
 
 def analyze_db(file):
@@ -78,13 +79,13 @@ def analyze_db(file):
                 not_in += 1
                 log.warning(f"Fencer {name} not found in members.csv")
                 db_fencer = defaultdict(str)
-            full_cursor.execute("INSERT INTO fencers VALUES (?,?,?,?,?,?,?,?,?)", (db_fencer["Member #"], name, name.split()[0].upper(),
+            full_cursor.execute("INSERT INTO fencers VALUES (?,?,?,?,?,?,?,?,?,?)", (db_fencer["Member #"], name, name.split()[0].upper(),
                                 db_fencer["Birthdate"], db_fencer["Club 1 Name"], ','.join([db_fencer[i] for i in ("Saber", "Epee", "Foil")]),
-                                db_fencer["Representing Country"],'',''))
+                                db_fencer["Representing Country"],'','',''))
             prev_row = get_fencer(name)
-        *_, tournaments, stats, _ = prev_row
-        full_cursor.execute("UPDATE fencers SET tournaments = ?, stats = ? WHERE name=\"{name}\"",
-                           (tournaments+":"+file.split(".")[0], stats+":"+','.join([v, vom, ts, tr, i, ms, ma])))
+        *_, tournaments, stats, matches = prev_row
+        full_cursor.execute("UPDATE fencers SET tournaments = ?, stats = ?, matches = ? WHERE name=?",
+                           (tournaments+"::"+file.split(".")[0].split("/")[1], stats+"::"+'.'.join([v, vom, ts, tr, i, ms, ma]), matches+"::", name))
     full_connection.commit()
     log.debug(f"Could not find data on {not_in} fencers out of {total} total. ({not_in/total})")
     log.info("Connected to games database")
@@ -94,33 +95,36 @@ def analyze_db(file):
         id_, p1, p2, score, round_, winner = game
         if p2[0].isdigit():
             score, p2 = p2, score
-
+        l1 = p1.split()[0]
+        l2 = p2.split()[0]
+        w = winner.split()[0]
         if p1 != "- BYE -":
-            p1_row = get_fencer(p1, lname=p1.split()[0])
+            p1_row = get_fencer(p1, lname=l1)
             if not p1_row:
                 not_in1 += 1
-                log.error(f"Fencer p1-{p1} not found in fencers")
+                log.error(f"Fencer p1-{p1}-{l1} not found in fencers")
             else:
                 *_, m1 = p1_row
-                full_cursor.execute("UPDATE fencers SET matches = ? WHERE name=\"{p1}\"", [m1+f"{p1}/{score}/{1 if winner == p1 else 0}"])
+                full_cursor.execute("UPDATE fencers SET matches = ? WHERE last_name=?", [m1+f",{l2}/{score}/{1 if w == l1 else 0}", l1])
 
         if p2 != "- BYE -":
-            p2_row = get_fencer(p2, lname=p2.split()[0])
+            p2_row = get_fencer(p2, lname=l2)
             if not p2_row:
                 not_in2 += 1
-                log.error(f"Fencer p2-{p2} not found in fencers")
+                log.error(f"Fencer p2-{p2}-{l2} not found in fencers")
             else:
                 *_, m2 = p2_row
-                full_cursor.execute("UPDATE fencers SET matches = ? WHERE name=\"{p2}\"", [m2+f"{p2}/{score}/{1 if winner == p2 else 0}"])
+                full_cursor.execute("UPDATE fencers SET matches = ? WHERE last_name=?", [m2+f",{l1}/{score}/{1 if w == l2 else 0}", l2])
     if not_in1 or not_in2:
         log.debug(f"Could not find data on {not_in1}+{not_in2}={not_in1+not_in2} fencers out of {total} total. ({(not_in1+not_in2)/(total*2)})")
+    log.info(f"Finished with {file}.")
     conn.commit()
     conn.close()
     full_connection.commit()
 
 if __name__ == "__main__":
     _init_cursor()
-    for file in os.listdir("dbs/"):
+    for file in reversed(os.listdir("dbs/")):
         if not file.endswith(".db") or file.startswith("agg"): continue
         analyze_db("dbs/"+file)
     full_connection.commit()
