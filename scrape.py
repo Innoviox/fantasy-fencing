@@ -112,7 +112,10 @@ def parse_tableau(driver):
         for game in b:
             c, d, *e, w = game
             if not e:
-                yield [game_id, c, d, "0-0", a, w]
+                if d[0].isdigit():
+                    yield [game_id, c, w, d, a, w]
+                else:
+                    yield [game_id, c, d, "0-0", a, w]
             elif d[0].isdigit():
                 yield [game_id, c, e[0], d, a, w]
             else:
