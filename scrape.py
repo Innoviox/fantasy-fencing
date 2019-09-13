@@ -3,6 +3,7 @@ from selenium import webdriver
 from requests import get
 from time     import sleep
 from re       import compile
+from json     import loads
 
 BASE = "https://www.fencingtimelive.com"
 #EVENT = "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
@@ -25,7 +26,7 @@ def parse_pools(driver):
                    # convert each row to soup obj for easier paring
         rows = list(map(lambda r: BeautifulSoup(r.get_attribute('innerHTML'), features="html.parser"), rows.find_elements_by_css_selector('tr.poolRow'))) # extract rows
         players = [i.find("span", class_="poolCompName").text for i in rows]
-        for row in rows: 
+        for row in rows:
             name = row.find("span", class_="poolCompName").text # extract text
             matches = [i.find("span").text for i in row.find_all("td", class_="poolScore")]
             stats = [i.text for i in row.find_all("td", class_="poolResult")] # extract data
@@ -36,7 +37,7 @@ def parse_pools(driver):
 
 def parse_tableau(driver):
     sleep(3) # wait for page to load
-    
+
     # store nextbtn as an updatable reference
     nextbtn = lambda: driver.find_element_by_css_selector("button#nextBut")
     games = {}
@@ -56,7 +57,7 @@ def parse_tableau(driver):
             if n not in games:
                 round_names.append(n)
                 games[n] = []
-        
+
         for tr in rows:
             for i, (name, td) in enumerate(zip(map(lambda i: i.decode_contents(), rounds.find_all("th")), tr.find_all("td"))):
                 if name in done: continue
@@ -79,7 +80,7 @@ def parse_tableau(driver):
                         games[rn][-1].append(player_name)
                     else:
                         games[rn].append([player_name])
-                    
+
                 elif "tscoref" in class_:
                     score = td.find("span", class_="tsco")
                     if score:
@@ -95,12 +96,12 @@ def parse_tableau(driver):
             sleep(1)
         offset -= 1
         sleep(3)
-        
+
         #offset += 1
         done.extend(round_names)
 
     # del games['']
-    
+
     game_id = 0
     for a, b in games.items():
         if a == '': continue
@@ -124,7 +125,7 @@ def parse_tableau(driver):
             game_id += 1
 
     driver.close()
-        
+
 def combine_pools(pools):
     super_pool = []
     for pool in pools:
@@ -132,24 +133,24 @@ def combine_pools(pools):
             old_fencer = [i for i in super_pool if i[1] == f[1]]
             if old_fencer:
                 old_fencer = old_fencer[0]
-                
+
                 for i in range(2, len(f)):
                     old_fencer[i] += "-" + f[i]
-                    
+
                 super_pool.append(old_fencer)
             else:
                 super_pool.append(f)
     yield from super_pool
-        
+
 
 def combine_tableaux(tabls):
     for t in tabls:
         yield from t
-        
+
 def scrape_data(event_url):
     # Retrieve the full page
     full_soup = make_soup(event_url)
-    
+
     # Retrieve pools link and tableau link
     pools = []
     for pool in full_soup.find_all("img", src="/img/poolInverse.png"):
@@ -162,31 +163,21 @@ def scrape_data(event_url):
         tabl_url = tabl.findParent().attrs['href']
         tabl_soup = make_soup(BASE+tabl_url, headless=True)
         tabls.append(parse_tableau(tabl_soup))
-    
+
     yield combine_pools(pools), combine_tableaux(tabls)
 
 def get_events():
-    # return [EVENT]
-    # events = make_soup(EVENT_SEARCH)
-    # for row in events.find("table").find_all("tr"):
-    #     yield row.find("a", class_="d-block").text, row.find("a", class_="btn btn-sm btn-primary".split()).text
-    events = make_soup("https://www.usafencing.org/natresults", headless=True)
-    table = BeautifulSoup(events.find_element_by_css_selector("table.dataTable.sortable").get_attribute("innerHTML"), features="html.parser")
-    events.close()
-
-    for row in table.find_all("tr")[1:]:
-        name, *_, link = row.find_all("td")
-        _event_soup = make_soup(link.find("a").attrs['href'], headless=True)
-        sleep(2)
-        # event_soup = BeautifulSoup(_event_soup.find_element_by_css_selector("body").get_attribute("innerHTML"), features="html.parser")
-        # print(event_soup.text)
-        #
-        # a = event_soup.find("strong", text=compile("Div I Men's")) # Épée")
-        a = _event_soup.find_elements_by_xpath("//strong[contains(text(), 'Div I Men')]")
-        print(a)
-        if a:
-            yield name.text, a.find_element_by_xpath('..').get_attribute('href')
-        _event_soup.close()
+    FTL_DATA = "https://fencingtimelive.com/tournaments/list/data"
+    SCHEDULE = "https://fencingtimelive.com/tournaments/eventSchedule/{}"
+    for tournament in loads(get(FTL_DATA).text):
+        name, schedlink = tournament["name"], make_soup(SCHEDULE.format(tournament["id"]))
+        for tr_event in schedlink.select("table.scheduleTable")[0].find_all("tr"):
+            url = tr_event.find("a")
+            if not url: continue
+            url = BASE+url['href']
+            _ev = make_soup(url).select("div.eventName")[0].text
+            if all(i in _ev for i in ["Div", " I ", "Men's", "Épée"]):
+                yield name, url
 
 ##    yield "April Championship and NAC", "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
 ##    yield "January NAC", "https://www.fencingtimelive.com/events/results/9828E06403B741498C70FB121ACA050B"
