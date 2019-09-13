@@ -179,6 +179,20 @@ def get_events():
             if all(i in _ev for i in ["Div", " I ", "Men's", "Épée"]):
                 yield name, url
 
+    UFR_DATA = "https://www.usfencingresults.org/results/20{}-20{}/"
+    for a in range(10, 19):
+        t_list = UFR_DATA.format(a, a + 1)
+        for sched in make_soup(t_list).select("table.sortable")[0].find_all("a"):
+            for tr_event in make_soup(t_list + sched['href']).select("table.scheduleTable")[0].find_all("tr"):
+                url = tr_event.find("a")
+                if not url: continue
+                url = BASE+url['href']
+                _ev = make_soup(url).select("span.tournDetails")[0].text
+                if all(i in _ev for i in ["Div", " I ", "Men's", "Épée"]):
+                    yield sched['href'], url
+
+
+
 ##    yield "April Championship and NAC", "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
 ##    yield "January NAC", "https://www.fencingtimelive.com/events/results/9828E06403B741498C70FB121ACA050B"
 ##    yield "National Championships and July Challenge", "https://www.fencingtimelive.com/events/results/3D1E58301F404058919BFD72DB0E6821"
