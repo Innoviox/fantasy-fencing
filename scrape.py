@@ -2,17 +2,18 @@ from bs4      import BeautifulSoup
 from selenium import webdriver
 from requests import get
 from time     import sleep
+from re       import compile
 
 BASE = "https://www.fencingtimelive.com"
 #EVENT = "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
-EVENT_SEARCH = "https://member.usafencing.org/search/tournaments/national?search=&filter_by_weapon=2&filter_by_gender=3&event_scopes=&filter_by_type=1&filter_by_event_type=&filter_by_show=past&designated="
+EVENT_SEARCH = "https://www.usafencing.org/natresults"
 options = webdriver.ChromeOptions()
 #options.add_argument('headless')
 
 # Utility method to create Soup or Driver instance from url
 def make_soup(url, headless=False):
     if headless:
-        driver = webdriver.Chrome(options=options)
+        driver = webdriver.Chrome('./chromedriver', options=options)
         driver.get(url)
         return driver
     return BeautifulSoup(get(url).text, features="html.parser")
@@ -169,5 +170,29 @@ def get_events():
     # events = make_soup(EVENT_SEARCH)
     # for row in events.find("table").find_all("tr"):
     #     yield row.find("a", class_="d-block").text, row.find("a", class_="btn btn-sm btn-primary".split()).text
-    yield "April Championship and NAC", "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
-    yield "January NAC", "https://www.fencingtimelive.com/events/results/9828E06403B741498C70FB121ACA050B"    
+    events = make_soup("https://www.usafencing.org/natresults", headless=True)
+    table = BeautifulSoup(events.find_element_by_css_selector("table.dataTable.sortable").get_attribute("innerHTML"), features="html.parser")
+    events.close()
+
+    for row in table.find_all("tr")[1:]:
+        name, *_, link = row.find_all("td")
+        _event_soup = make_soup(link.find("a").attrs['href'], headless=True)
+        sleep(2)
+        # event_soup = BeautifulSoup(_event_soup.find_element_by_css_selector("body").get_attribute("innerHTML"), features="html.parser")
+        # print(event_soup.text)
+        #
+        # a = event_soup.find("strong", text=compile("Div I Men's")) # Épée")
+        a = _event_soup.find_elements_by_xpath("//strong[contains(text(), 'Div I Men')]")
+        print(a)
+        if a:
+            yield name.text, a.find_element_by_xpath('..').get_attribute('href')
+        _event_soup.close()
+
+##    yield "April Championship and NAC", "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
+##    yield "January NAC", "https://www.fencingtimelive.com/events/results/9828E06403B741498C70FB121ACA050B"
+##    yield "National Championships and July Challenge", "https://www.fencingtimelive.com/events/results/3D1E58301F404058919BFD72DB0E6821"
+##    yield "December NAC", "https://www.fencingtimelive.com/events/results/0E9AC4A22017471DB0243E68B1D6A902"
+##    yield "October NAC", "https://www.fencingtimelive.com/events/results/5CEF42E54E9C42959C6629926C8D857B"
+
+for n,a in get_events():
+    print(n,a)
