@@ -195,17 +195,20 @@ def parse_tableau(driver, parser):
                 if not next_name == '':
                     b[i * 2 + 1].append(j[1] if not j[1][0].isdigit() else j[2])
         for game in b:
-            c, d, *e, w = game
-            if not e:
-                if d[0].isdigit():
-                    yield [game_id, c, w, d, a, w]
+            try:
+                c, d, *e, w = game
+                if not e:
+                    if d[0].isdigit():
+                        yield [game_id, c, w, d, a, w]
+                    else:
+                        yield [game_id, c, d, "0-0", a, w]
+                elif d[0].isdigit():
+                    yield [game_id, c, e[0], d, a, w]
                 else:
-                    yield [game_id, c, d, "0-0", a, w]
-            elif d[0].isdigit():
-                yield [game_id, c, e[0], d, a, w]
-            else:
-                yield [game_id, c, d, e[0], a, w]
-            game_id += 1
+                    yield [game_id, c, d, e[0], a, w]
+                game_id += 1
+            except ValueError as ve:
+                log.error(ve, game)
 
     driver.close()
 
@@ -260,7 +263,7 @@ def get_events():
     # yield "April Championship and NAC", "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
     # yield "OCT NAC", "https://www.usfencingresults.org/results/2018-2019/2018.10-OCT-NAC/FTEvent_2018Oct12_DV1ME.htm"
     # return
-
+    #
     FTL_DATA = "https://fencingtimelive.com/tournaments/list/data"
     SCHEDULE = "https://fencingtimelive.com/tournaments/eventSchedule/{}"
     driver = make_soup("data:,", headless=True)
