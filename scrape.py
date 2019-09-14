@@ -275,12 +275,13 @@ def get_events():
                 url = tr_event.find("a")
                 if not url: continue
                 url = BASE_FTL + url['href']
-                _ev = make_soup(url).select("div.eventName")
+                msu = make_soup(url)
+                _ev = msu.select("div.eventName")
                 if not _ev: continue
                 _ev = _ev[0].text
                 if all(i in _ev for i in ["Div", " I ", "Men's", "Épée"]) and "Team" not in _ev:
                     # print(name, url)
-                    yield name, url
+                    yield name + msu.select("div.eventTime")[0].text, url
 
     UFR_DATA = "https://www.usfencingresults.org/results/20{}-20{}/"
     for a in range(11, 19):
