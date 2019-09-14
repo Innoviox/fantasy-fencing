@@ -44,7 +44,7 @@ PARSERS = {
 
         "pools": {
             "table": "table.table",
-            "pool_row": "tr.poolRow",
+            "pool_row": lambda r: r.find_elements_by_css_selector("tr.poolRow"),
             "find_players": lambda i: i.find("span", class_="poolCompName").text,
             "find_name": lambda r: r.find("span", class_="poolCompName").text,
             "find_matches": lambda r: [i.find("span").text for i in r.find_all("td", class_="poolScore")],
@@ -59,21 +59,21 @@ PARSERS = {
         "tds": {
             "is_info": lambda c: "tableauBorderBottom" in c or "tableauBorderBottomRight" in c or "tableauNameCell" in c,
             "is_score": lambda c: 1,
-            "get_score": lambda t: t.select("span.tableauReferee").parent,
-            "find_name": lambda t: t.select("span.tableauCompName")[0].text.decode_contents(),
+            "get_score": lambda t: t.select("span.tableauReferee")[0].findParent() if t.select("span.tableauReferee") else False,
+            "find_name": lambda t: t.select("span.tableauCompName")[0].text,
             "rounds": "td"
         },
         "table_select": "table.elimTableau",
-        "nextitem": lambda d: lambda: Select([i for i in d.find_element_by_css_selector("select.viewSelect") if i.is_displayed()][0]),
+        "nextitem": lambda d: lambda: Select([i for i in d.find_elements_by_css_selector("select.viewSelect") if i.is_displayed()][0]),
         "next": sn,
 
         "pools": {
-            "table": "table.table",
-            "pool_row": "tr.poolRow",
-            "find_players": lambda i: i.find("span", class_="poolCompName").text,
-            "find_name": lambda r: r.find("span", class_="poolCompName").text,
-            "find_matches": lambda r: [i.find("span").text for i in r.find_all("td", class_="poolScore")],
-            "find_stats": lambda s: [i.text for i in s.find_all("td", class_="poolResult")]
+            "table": "table.pool",
+            "pool_row": lambda r: r.find_elements_by_css_selector("tr.poolOddRow") + r.find_elements_by_css_selector("tr.poolEvenRow"),
+            "find_players": lambda i: i.find("td", class_="poolNameCol").decode_contents().split("<")[0],
+            "find_name": lambda r: r.find("td", class_="poolNameCol").decode_contents().split("<")[0],
+            "find_matches": lambda r: [i.text for i in r.find_all("td", class_="poolScoreCol")],
+            "find_stats": lambda s: [i.text for i in s.find_all("td", class_="poolResultCol")]
         }
     },
     # "askfred": {}
@@ -96,9 +96,9 @@ def make_soup(url, _special_preload=lambda driver:None, headless=False):
 def parse_pools(driver, parser):
     sleep(3) # wait for page to load
     fencer_id = 0
-    for pool_n, rows in enumerate(driver.find_elements_by_css_selector(parser["pools"]["table"]), start=1): # extract pool tables
+    for pool_n, rows in enumerate([i for i in driver.find_elements_by_css_selector(parser["pools"]["table"]) if i.is_displayed()], start=1): # extract pool tables
                    # convert each row to soup obj for easier paring
-        rows = list(map(lambda r: BeautifulSoup(r.get_attribute('innerHTML'), features="html.parser"), rows.find_elements_by_css_selector(parser["pools"]["pool_row"]))) # extract rows
+        rows = list(map(lambda r: BeautifulSoup(r.get_attribute('innerHTML'), features="html.parser"), parser["pools"]["pool_row"](rows))) # extract rows
         # players = [i.find("span", class_="poolCompName").text for i in rows]
         players = [parser["pools"]["find_players"](i) for i in rows]
         for row in rows:
@@ -124,11 +124,10 @@ def parse_tableau(driver, parser):
 
     while ('' not in round_names) and (' ' not in round_names): # nextbtn().is_enabled() or first_loop:
         # extract table into soup
-        table = BeautifulSoup(driver.find_element_by_css_selector(parser["table_select"]).get_attribute("innerHTML"), features='html.parser')
+        table = BeautifulSoup([i for i in driver.find_elements_by_css_selector(parser["table_select"]) if i.is_displayed()][0].get_attribute("innerHTML"), features='html.parser')
         rounds, *rows = table.find_all("tr")
-
         for r in rounds.find_all(parser["tds"]["rounds"]): # rounds.find_all("th"):
-            n = r.decode_contents().replace(u'\xa0', u' ')
+            n = r.decode_contents().replace(u'\xa0', '')
             if n == ' ' or not n.strip() or not n:
                 round_names.append('')
                 games[''] = []
@@ -137,7 +136,7 @@ def parse_tableau(driver, parser):
                 games[n] = []
 
         for tr in rows:
-            for i, (name, td) in enumerate(zip(map(lambda i: i.decode_contents(), rounds.find_all("th")), tr.find_all("td"))):
+            for i, (name, td) in enumerate(zip(map(lambda i: i.decode_contents(), rounds.find_all(parser["tds"]["rounds"])), tr.find_all("td"))):
                 if name in done: continue
                 # extract class from td
                 class_ = td.attrs.get('class')
@@ -154,8 +153,8 @@ def parse_tableau(driver, parser):
                     #     player_name += " " + first_name.decode_contents()
 
                     # add to last game or create new game if last game is full
-                    rn = name# round_names[i + offset]
-                    cg = games[rn]
+                    rn = name.replace(u'\xa0', u'')# round_names[i + offset]
+                    cg = games.get(rn)
                     # check if last game is actually full or it's just score
                     if cg and (len(cg[-1]) < 2 or (len(cg[-1]) == 2 and cg[-1][-1][0].isdigit())):
                         games[rn][-1].append(player_name)
@@ -186,6 +185,7 @@ def parse_tableau(driver, parser):
 
     game_id = 0
     for a, b in games.items():
+        print("rgreg", a)
         if a == '': continue
         else:
             next_name = round_names[round_names.index(a) + 1]
@@ -194,6 +194,7 @@ def parse_tableau(driver, parser):
                 if not next_name == '':
                     b[i * 2 + 1].append(j[1] if not j[1][0].isdigit() else j[2])
         for game in b:
+            print(game)
             c, d, *e, w = game
             if not e:
                 if d[0].isdigit():
@@ -307,6 +308,7 @@ for event, event_url in get_events():
     for (pools, tableaus) in scrape_data(event_url):
         for i in pools:
             for k in i:
-                print(k)
+                ...
+                #print(k)
         for j in tableaus:
             print(j)
