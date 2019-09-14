@@ -185,7 +185,6 @@ def parse_tableau(driver, parser):
 
     game_id = 0
     for a, b in games.items():
-        print("rgreg", a)
         if a == '': continue
         else:
             next_name = round_names[round_names.index(a) + 1]
@@ -194,7 +193,6 @@ def parse_tableau(driver, parser):
                 if not next_name == '':
                     b[i * 2 + 1].append(j[1] if not j[1][0].isdigit() else j[2])
         for game in b:
-            print(game)
             c, d, *e, w = game
             if not e:
                 if d[0].isdigit():
