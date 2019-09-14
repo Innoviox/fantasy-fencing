@@ -3,6 +3,26 @@ import os
 
 import scrape
 
+import logging
+
+# set up logging
+LOG_LEVEL = logging.DEBUG
+LOGFORMAT = "%(log_color)s[%(asctime)s] %(levelname)-8s%(reset)s | %(log_color)s%(message)s%(reset)s"
+from colorlog import ColoredFormatter
+logging.root.setLevel(LOG_LEVEL)
+formatter = ColoredFormatter(LOGFORMAT,log_colors={
+		'DEBUG':    'cyan',
+		'INFO':     'green',
+		'WARNING':  'yellow',
+		'ERROR':    'red',
+		'CRITICAL': 'red,bg_white',
+	},datefmt='%Y-%m-%d %H:%M:%S')
+stream = logging.StreamHandler()
+stream.setLevel(LOG_LEVEL)
+stream.setFormatter(formatter)
+log = logging.getLogger('pythonConfig')
+log.setLevel(LOG_LEVEL)
+
 def init_file(c):
     try:
         c.execute("DROP TABLE fencers")
@@ -30,6 +50,8 @@ def init_file(c):
 );""")
 
 for event, event_url in scrape.get_events():
+    log.debug(f"Looking at {event} -> {event_url}")
+    print(event, event_url)
     conn = sqlite3.connect(f"dbs/{event}.db")
     c = conn.cursor()
     init_file(c)

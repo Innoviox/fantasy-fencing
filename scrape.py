@@ -28,8 +28,8 @@ def sn(e):
 PARSERS = {
     ("/pools", "/tableaus"): {
         "base": lambda u: BASE_FTL,
-        "find_pools": lambda s: s.find_all("img", src="/img/poolInverse.png").findParent(),
-        "find_tabls": lambda s: s.find_all("img", src="/img/tableauInverse.png").findParent(),
+        "find_pools": lambda s: [i.findParent() for i in s.find_all("img", src="/img/poolInverse.png")],
+        "find_tabls": lambda s: [i.findParent() for i in s.find_all("img", src="/img/tableauInverse.png")],
         "preload": lambda u: lambda driver: None,
         "tds": {
             "is_info": lambda c: "tbb" in c or "tbbr" in c,
@@ -256,8 +256,8 @@ def scrape_data(event_url):
 
 def get_events():
     # yield "April Championship and NAC", "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
-    yield "OCT NAC", "https://www.usfencingresults.org/results/2018-2019/2018.10-OCT-NAC/FTEvent_2018Oct12_DV1ME.htm"
-    return
+    # yield "OCT NAC", "https://www.usfencingresults.org/results/2018-2019/2018.10-OCT-NAC/FTEvent_2018Oct12_DV1ME.htm"
+    # return
     FTL_DATA = "https://fencingtimelive.com/tournaments/list/data"
     SCHEDULE = "https://fencingtimelive.com/tournaments/eventSchedule/{}"
     for tournament in loads(get(FTL_DATA).text):
@@ -272,6 +272,7 @@ def get_events():
             if not _ev: continue
             _ev = _ev[0].text
             if all(i in _ev for i in ["Div", " I ", "Men's", "Épée"]):
+                # print(name, url)
                 yield name, url
 
     UFR_DATA = "https://www.usfencingresults.org/results/20{}-20{}/"
@@ -291,7 +292,7 @@ def get_events():
                     if not _ev: continue
                     _ev = _ev[0].text
                     if all(i in _ev for i in ["Div", " I ", "Men's", "Épée"]):
-                        print(sched['href'], url)
+                        # print(sched['href'], url)
                         yield sched['href'], url
 
 
@@ -302,11 +303,12 @@ def get_events():
 ##    yield "December NAC", "https://www.fencingtimelive.com/events/results/0E9AC4A22017471DB0243E68B1D6A902"
 ##    yield "October NAC", "https://www.fencingtimelive.com/events/results/5CEF42E54E9C42959C6629926C8D857B"
 
-for event, event_url in get_events():
-    for (pools, tableaus) in scrape_data(event_url):
-        for i in pools:
-            for k in i:
-                ...
-                #print(k)
-        for j in tableaus:
-            print(j)
+if __name__ == "__main__":
+    for event, event_url in get_events():
+        for (pools, tableaus) in scrape_data(event_url):
+            for i in pools:
+                for k in i:
+                    ...
+                    #print(k)
+            for j in tableaus:
+                print(j)
