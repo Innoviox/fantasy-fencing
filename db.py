@@ -2,26 +2,7 @@ import sqlite3
 import os
 
 import scrape
-
-import logging
-
-# set up logging
-LOG_LEVEL = logging.DEBUG
-LOGFORMAT = "%(log_color)s[%(asctime)s] %(levelname)-8s%(reset)s | %(log_color)s%(message)s%(reset)s"
-from colorlog import ColoredFormatter
-logging.root.setLevel(LOG_LEVEL)
-formatter = ColoredFormatter(LOGFORMAT,log_colors={
-		'DEBUG':    'cyan',
-		'INFO':     'green',
-		'WARNING':  'yellow',
-		'ERROR':    'red',
-		'CRITICAL': 'red,bg_white',
-	},datefmt='%Y-%m-%d %H:%M:%S')
-stream = logging.StreamHandler()
-stream.setLevel(LOG_LEVEL)
-stream.setFormatter(formatter)
-log = logging.getLogger('pythonConfig')
-log.setLevel(LOG_LEVEL)
+from logs import log
 
 def init_file(c):
     try:
@@ -51,13 +32,16 @@ def init_file(c):
 
 for event, event_url in scrape.get_events():
     log.debug(f"Looking at {event} -> {event_url}")
-    print(event, event_url)
+    # print(event, event_url)
     conn = sqlite3.connect(f"dbs/{event}.db")
     c = conn.cursor()
     init_file(c)
-    for (pools, tableaus) in scrape.scrape_data(event_url):
-        c.executemany('INSERT INTO fencers VALUES (?,?,?,?,?,?,?,?,?)', pools)
-        c.executemany('INSERT INTO games VALUES (?,?,?,?,?,?)', tableaus)
-
+    try:
+        for (pools, tableaus) in scrape.scrape_data(event_url):
+            c.executemany('INSERT INTO fencers VALUES (?,?,?,?,?,?,?,?,?)', pools)
+            c.executemany('INSERT INTO games VALUES (?,?,?,?,?,?)', tableaus)
+    except Exception as e:
+        # print(e)
+        log.error(e)
     conn.commit()
     conn.close()

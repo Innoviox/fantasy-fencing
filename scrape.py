@@ -5,6 +5,7 @@ from requests import get
 from time     import sleep
 from re       import compile
 from json     import loads
+from logs     import log
 
 BASE_FTL = "https://www.fencingtimelive.com"
 #EVENT = "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
@@ -85,11 +86,11 @@ EURL_TO_PARSER = {
 }
 
 # Utility method to create Soup or Driver instance from url
-def make_soup(url, _special_preload=lambda driver:None, headless=False):
+def make_soup(url, _special_preload=lambda driver:None, headless=False, driver=None):
     if headless:
-        driver = webdriver.Chrome('./chromedriver', options=options)
+        if not driver: driver = webdriver.Chrome('./chromedriver', options=options)
         driver.get(url)
-        _special_preload(driver)
+        if _special_preload: _special_preload(driver)
         return driver
     return BeautifulSoup(get(url).text, features="html.parser")
 
@@ -106,9 +107,10 @@ def parse_pools(driver, parser):
             name = parser["pools"]["find_name"](row)
             matches = parser["pools"]["find_matches"](row)
             stats = parser["pools"]["find_stats"](row) # extract data
-            v, v_m, ts, tr, ind = map(str, stats) # extract statistics
-            yield [fencer_id, name, v, v_m, ts, tr, ind, ','.join(matches), ','.join(i for i in players if i != name)]
-            fencer_id += 1
+            if stats:
+                v, v_m, ts, tr, ind = map(str, stats) # extract statistics
+                yield [fencer_id, name, v, v_m, ts, tr, ind, ','.join(matches), ','.join(i for i in players if i != name)]
+                fencer_id += 1
     driver.close()
 
 def parse_tableau(driver, parser):
@@ -258,28 +260,33 @@ def get_events():
     # yield "April Championship and NAC", "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
     # yield "OCT NAC", "https://www.usfencingresults.org/results/2018-2019/2018.10-OCT-NAC/FTEvent_2018Oct12_DV1ME.htm"
     # return
+
     FTL_DATA = "https://fencingtimelive.com/tournaments/list/data"
     SCHEDULE = "https://fencingtimelive.com/tournaments/eventSchedule/{}"
+    driver = make_soup("data:,", headless=True)
     for tournament in loads(get(FTL_DATA).text):
-        name, schedlink = tournament["name"], make_soup(SCHEDULE.format(tournament["id"]))
+        name, schedlink = tournament["name"], make_soup(SCHEDULE.format(tournament["id"]), headless=True, driver=driver)
+        schedlink = BeautifulSoup(schedlink.page_source, "html.parser")
         st = schedlink.select("table.scheduleTable")
+        # log.debug(SCHEDULE.format(tournament["id"]))
         if not st: continue
-        for tr_event in st[0].find_all("tr"):
-            url = tr_event.find("a")
-            if not url: continue
-            url = BASE_FTL + url['href']
-            _ev = make_soup(url).select("div.eventName")
-            if not _ev: continue
-            _ev = _ev[0].text
-            if all(i in _ev for i in ["Div", " I ", "Men's", "Épée"]):
-                # print(name, url)
-                yield name, url
+        for s in st:
+            for tr_event in s.find_all("tr"):
+                url = tr_event.find("a")
+                if not url: continue
+                url = BASE_FTL + url['href']
+                _ev = make_soup(url).select("div.eventName")
+                if not _ev: continue
+                _ev = _ev[0].text
+                if all(i in _ev for i in ["Div", " I ", "Men's", "Épée"]) and "Team" not in _ev:
+                    # print(name, url)
+                    yield name, url
 
     UFR_DATA = "https://www.usfencingresults.org/results/20{}-20{}/"
     for a in range(11, 19):
         t_list = UFR_DATA.format(a, a + 1)
         t = make_soup(t_list).select("table.sortable")
-        for sched in t[0].find_all("a"):
+        for sched in t[0].find_all("a", class_="name"):
             s_url = t_list + sched['href'].replace(" ", "%20")
             st = make_soup(s_url).select("table.dataTable")
             if not st: continue
@@ -291,7 +298,7 @@ def get_events():
                     _ev = make_soup(url).select("span.tournDetails")
                     if not _ev: continue
                     _ev = _ev[0].text
-                    if all(i in _ev for i in ["Div", " I ", "Men's", "Épée"]):
+                    if all(i in _ev for i in ["Div", " I ", "Men's", "Epee"]) and "Team" not in _ev:
                         # print(sched['href'], url)
                         yield sched['href'], url
 
