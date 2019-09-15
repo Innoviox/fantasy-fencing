@@ -208,7 +208,7 @@ def parse_tableau(driver, parser):
                     yield [game_id, c, d, e[0], a, w]
                 game_id += 1
             except ValueError as ve:
-                log.error(ve, game)
+                log.error(f"{ve} -> {game}")
 
     driver.close()
 
@@ -264,27 +264,29 @@ def get_events():
     # yield "OCT NAC", "https://www.usfencingresults.org/results/2018-2019/2018.10-OCT-NAC/FTEvent_2018Oct12_DV1ME.htm"
     # return
     #
-    FTL_DATA = "https://fencingtimelive.com/tournaments/list/data"
-    SCHEDULE = "https://fencingtimelive.com/tournaments/eventSchedule/{}"
-    driver = make_soup("data:,", headless=True)
-    for tournament in loads(get(FTL_DATA).text):
-        name, schedlink = tournament["name"], make_soup(SCHEDULE.format(tournament["id"]), headless=True, driver=driver)
-        schedlink = BeautifulSoup(schedlink.page_source, "html.parser")
-        st = schedlink.select("table.scheduleTable")
-        # log.debug(SCHEDULE.format(tournament["id"]))
-        if not st: continue
-        for s in st:
-            for tr_event in s.find_all("tr"):
-                url = tr_event.find("a")
-                if not url: continue
-                url = BASE_FTL + url['href']
-                msu = make_soup(url)
-                _ev = msu.select("div.eventName")
-                if not _ev: continue
-                _ev = _ev[0].text
-                if all(i in _ev for i in ["Div", " I ", "Men's", "Épée"]) and "Team" not in _ev:
-                    # print(name, url)
-                    yield name + msu.select("div.eventTime")[0].text, url
+
+
+    # FTL_DATA = "https://fencingtimelive.com/tournaments/list/data"
+    # SCHEDULE = "https://fencingtimelive.com/tournaments/eventSchedule/{}"
+    # driver = make_soup("data:,", headless=True)
+    # for tournament in loads(get(FTL_DATA).text):
+    #     name, schedlink = tournament["name"], make_soup(SCHEDULE.format(tournament["id"]), headless=True, driver=driver)
+    #     schedlink = BeautifulSoup(schedlink.page_source, "html.parser")
+    #     st = schedlink.select("table.scheduleTable")
+    #     # log.debug(SCHEDULE.format(tournament["id"]))
+    #     if not st: continue
+    #     for s in st:
+    #         for tr_event in s.find_all("tr"):
+    #             url = tr_event.find("a")
+    #             if not url: continue
+    #             url = BASE_FTL + url['href']
+    #             msu = make_soup(url)
+    #             _ev = msu.select("div.eventName")
+    #             if not _ev: continue
+    #             _ev = _ev[0].text
+    #             if all(i in _ev for i in ["Div", " I ", "Men's", "Épée"]) and "Team" not in _ev:
+    #                 # print(name, url)
+    #                 yield name + msu.select("div.eventTime")[0].text, url
 
     UFR_DATA = "https://www.usfencingresults.org/results/20{}-20{}/"
     for a in range(11, 19):
@@ -299,12 +301,17 @@ def get_events():
                     url = tr_event.find("a")
                     if not url: continue
                     url = s_url+'/'+url['href']
-                    _ev = make_soup(url).select("span.tournDetails")
+                    msu = make_soup(url)
+                    _ev = msu.select("span.tournDetails")
                     if not _ev: continue
                     _ev = _ev[0].text
                     if all(i in _ev for i in ["Div", " I ", "Men's", "Epee"]) and "Team" not in _ev:
                         # print(sched['href'], url)
-                        yield sched['href'], url
+                        print(msu.text.index("Repechage"))
+                        if "Repechage" not in msu.text:
+                            yield sched['href'], url
+                        else:
+                            log.warn(f"Repechage found, skipping {url}")
 
 
 
