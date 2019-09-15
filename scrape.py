@@ -307,7 +307,6 @@ def get_events():
                     _ev = _ev[0].text
                     if all(i in _ev for i in ["Div", " I ", "Men's", "Epee"]) and "Team" not in _ev:
                         # print(sched['href'], url)
-                        print(msu.text.index("Repechage"))
                         if "Repechage" not in msu.text:
                             yield sched['href'], url
                         else:
