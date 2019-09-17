@@ -1,3 +1,7 @@
 __pycache__/
 .DS_Store
 .idea
+fencer-UI/node_modules
+fencer-UI/node-modules
+fencer-UI/node_modules/
+fencer-UInode_modules
