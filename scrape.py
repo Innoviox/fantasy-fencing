@@ -321,7 +321,6 @@ def get_events():
     #             print(link['href'])\
 
 
-
 ##    yield "April Championship and NAC", "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
 ##    yield "January NAC", "https://www.fencingtimelive.com/events/results/9828E06403B741498C70FB121ACA050B"
 ##    yield "National Championships and July Challenge", "https://www.fencingtimelive.com/events/results/3D1E58301F404058919BFD72DB0E6821"
