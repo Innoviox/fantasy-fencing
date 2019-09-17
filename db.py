@@ -2,6 +2,7 @@ import sqlite3
 import os
 
 import scrape
+from logs import log
 
 def init_file(c):
     try:
@@ -30,12 +31,17 @@ def init_file(c):
 );""")
 
 for event, event_url in scrape.get_events():
+    log.debug(f"Looking at {event} -> {event_url}")
+    # print(event, event_url)
     conn = sqlite3.connect(f"dbs/{event}.db")
     c = conn.cursor()
     init_file(c)
-    for (pools, tableaus) in scrape.scrape_data(event_url):
-        c.executemany('INSERT INTO fencers VALUES (?,?,?,?,?,?,?,?,?)', pools)
-        c.executemany('INSERT INTO games VALUES (?,?,?,?,?,?)', tableaus)
-
+    try:
+        for (pools, tableaus) in scrape.scrape_data(event_url):
+            c.executemany('INSERT INTO fencers VALUES (?,?,?,?,?,?,?,?,?)', pools)
+            c.executemany('INSERT INTO games VALUES (?,?,?,?,?,?)', tableaus)
+    except Exception as e:
+        # print(e)
+        log.error(e)
     conn.commit()
     conn.close()
