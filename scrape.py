@@ -312,6 +312,13 @@ def get_events():
                         else:
                             log.warn(f"Repechage found, skipping {url}")
 
+    # ASK_FRED = "https://askfred.net/Results/past.php?f%5Bevent_weapon_eq%5D=Epee&f%5Bevent_gender_eq%5D=men&f%5Bevent_age_eq%5D=&f%5Bradius_mi%5D=300&vals%5Bloc%5D=&f%5Bname_contains%5D=&ops%5Bdate%5D=start_date_eq&vals%5Bdate%5D=&f%5Bevent_is_team%5D=&f%5Bevent_entries_gte%5D=&ops%5Bevent_rating%5D=event_rating_eq&vals%5Bevent_rating%5D=&f%5Bdivision_id%5D"
+    # for page in range(5344 // 20):
+    #     table = make_soup(ASK_FRED + f"&page_id={page + 1}").select("table#past-tours")[0]
+    #     for row in table.find_all("tr"):
+    #         link = row.find_all("a")[2]
+    #         if "greyedout" not in link.attrs.get('class', []):
+    #             print(link['href'])\
 
 
 ##    yield "April Championship and NAC", "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
