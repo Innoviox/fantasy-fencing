@@ -1,0 +1,26 @@
+[
+    {
+        "Name": "Justin Haddad",
+        "Birth Year": "2002",
+        "Country": "USA",
+        "Club": "DC Fencer's Club",
+        "Rating": "A19",
+        "Left/Right Handed": "R"
+    }, 
+    {
+        "Name": "Noe Sitbon-Taylor",
+        "Birth Year": "2002",
+        "Country": "USA",
+        "Club": "DC Fencer's Club",
+        "Rating": "A19",
+        "Left/Right Handed": "R"
+    },
+    {
+        "Name": "Howard Zhao",
+        "Birth Year": "2002",
+        "Country": "CHN",
+        "Club": "Dynamo Fencing Club",
+        "Rating": "A19",
+        "Left/Right Handed": "L"
+    }
+]

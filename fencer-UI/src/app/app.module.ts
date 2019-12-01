@@ -4,11 +4,13 @@ import { NgModule } from '@angular/core';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { RocketShipComponent } from './rocket-ship/rocket-ship.component';
+import { FencerTableComponent } from './fencer-table/fencer-table.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    RocketShipComponent
+    RocketShipComponent,
+    FencerTableComponent
   ],
   imports: [
     BrowserModule,
