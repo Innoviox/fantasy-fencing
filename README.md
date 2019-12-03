@@ -15,9 +15,10 @@ Grip (pistol/french)
 
 ## Ideas for UI
 
+- Home
 - Table list: data on all fencers, broad, sort by weapon, gender, age, ...
 - User Profile -> Personal Stats (against specific oponents)
-- Coaches view -> data on many fencers (locked unless you buy(?))
+- Coaches view: data on many fencers (locked unless you buy(?))
 
 ## Structure
 
