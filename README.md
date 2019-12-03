@@ -1,5 +1,5 @@
-# fantasy-fencing
-like fantasy football but different
+# Repo's(te)
+not anything like fantasy football
 
 ## Running/building
 
