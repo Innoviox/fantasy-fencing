@@ -7,6 +7,18 @@ Modules to install: `pydantic`, `selenium`, `uvicorn`, `fastapi`, `beautifulsoup
 
 Run: `uvicorn main:app --reload`
 
+## Ideas for data
+
+Left/right handed
+
+Grip (pistol/french)
+
+## Ideas for UI
+
+- Table list: data on all fencers, broad, sort by weapon, gender, age, ...
+- User Profile -> Personal Stats (against specific oponents)
+- Coaches view -> data on many fencers (locked unless you buy(?))
+
 ## Structure
 
 Each {tournament}.db file has two tables in it: the fencers who fenced in that tournament, and the matches that were played. Each fencer contains the following statistics from their pool:
