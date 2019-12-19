@@ -7,6 +7,8 @@ from re       import compile
 from json     import loads
 from logs     import log
 
+CHECK_REPECHAGE = False
+
 BASE_FTL = "https://www.fencingtimelive.com"
 #EVENT = "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
 EVENT_SEARCH = "https://www.usafencing.org/natresults"
@@ -189,12 +191,16 @@ def parse_tableau(driver, parser):
     for a, b in games.items():
         if a == '': continue
         else:
+            print("Round", a)
             next_name = round_names[round_names.index(a) + 1]
+            print("Next games:")
             for i, j in enumerate(games[next_name]):
+                print("\t", j)
                 b[i * 2].append(j[0])
                 if not next_name == '':
                     b[i * 2 + 1].append(j[1] if not j[1][0].isdigit() else j[2])
         for game in b:
+            print(game)
             try:
                 c, d, *e, w = game
                 if not e:
@@ -260,6 +266,8 @@ def scrape_data(event_url):
     yield combine_pools(pools), combine_tableaux(tabls)
 
 def get_events():
+    return (("Jan NAC 2017", "https://www.usfencingresults.org/results/2016-2017/./2017.01-JAN-NAC/FTEvent_2017Jan06_DV1ME.htm"),)
+    '''
     # yield "April Championship and NAC", "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
     # yield "OCT NAC", "https://www.usfencingresults.org/results/2018-2019/2018.10-OCT-NAC/FTEvent_2018Oct12_DV1ME.htm"
     # return
@@ -301,16 +309,18 @@ def get_events():
                     url = tr_event.find("a")
                     if not url: continue
                     url = s_url+'/'+url['href']
+                    if 'DV1ME' not in url: continue
                     msu = make_soup(url)
                     _ev = msu.select("span.tournDetails")
                     if not _ev: continue
                     _ev = _ev[0].text
                     if all(i in _ev for i in ["Div", " I ", "Men's", "Epee"]) and "Team" not in _ev:
                         # print(sched['href'], url)
-                        if "Repechage" not in msu.text:
+                        if CHECK_REPECHAGE or "Repechage" not in msu.text:
+                            log.debug(f"Found valid url {url} (note: {'not ' if not CHECK_REPECHAGE else ''}checking repechage)")
                             yield sched['href'], url
                         else:
-                            log.warn(f"Repechage found, skipping {url}")
+                            log.warning(f"Repechage found, skipping {url}")
 
     # ASK_FRED = "https://askfred.net/Results/past.php?f%5Bevent_weapon_eq%5D=Epee&f%5Bevent_gender_eq%5D=men&f%5Bevent_age_eq%5D=&f%5Bradius_mi%5D=300&vals%5Bloc%5D=&f%5Bname_contains%5D=&ops%5Bdate%5D=start_date_eq&vals%5Bdate%5D=&f%5Bevent_is_team%5D=&f%5Bevent_entries_gte%5D=&ops%5Bevent_rating%5D=event_rating_eq&vals%5Bevent_rating%5D=&f%5Bdivision_id%5D"
     # for page in range(5344 // 20):
@@ -319,7 +329,7 @@ def get_events():
     #         link = row.find_all("a")[2]
     #         if "greyedout" not in link.attrs.get('class', []):
     #             print(link['href'])\
-
+'''
 
 ##    yield "April Championship and NAC", "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
 ##    yield "January NAC", "https://www.fencingtimelive.com/events/results/9828E06403B741498C70FB121ACA050B"
