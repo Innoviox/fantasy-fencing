@@ -3,6 +3,8 @@ import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 import { RouterModule } from '@angular/router';
+import { HttpClient } from '@angular/common/http'; 
+import { Observable } from 'rxjs/Observable';
 
 
 import { AppRoutingModule } from './app.routing';
@@ -44,4 +46,14 @@ import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.compon
   providers: [],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+
+export class AppModule { 
+//    constructor(private http: HttpClient) {
+//   this.getJSON().subscribe(data => {
+//       console.log(data);
+//   });
+// }
+
+// public getJSON(): Observable<any> {
+//   return this.http.get("./assets/mydata.json");
+  }

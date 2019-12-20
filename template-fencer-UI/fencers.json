@@ -4,7 +4,9 @@
         "Birth Year": "2002",
         "Country": "USA",
         "Club": "DC Fencer's Club",
-        "Rating": "A19",
+        "ERating": "A19",
+        "SRating": "U",
+        "FRating": "U",
         "Left/Right Handed": "R"
     }, 
     {
@@ -12,7 +14,9 @@
         "Birth Year": "2002",
         "Country": "USA",
         "Club": "DC Fencer's Club",
-        "Rating": "A19",
+        "ERating": "A19",
+        "SRating": "U",
+        "FRating": "U",
         "Left/Right Handed": "R"
     },
     {
@@ -20,7 +24,9 @@
         "Birth Year": "2002",
         "Country": "CHN",
         "Club": "Dynamo Fencing Club",
-        "Rating": "A19",
+        "ERating": "A19",
+        "SRating": "U",
+        "FRating": "U",
         "Left/Right Handed": "L"
     }
 ]

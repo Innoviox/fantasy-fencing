@@ -7,9 +7,14 @@ import { Component, OnInit } from '@angular/core';
 })
 export class TableListComponent implements OnInit {
 
-  constructor() { }
+  constructor(
+   // private appModule : AppModule 
+) { }
 
-  ngOnInit() {
-  }
+ngOnInit(){
+  //  this.appModule.getJSON().subscribe(data => {
+  //       console.log(data);
+  //   }); 
+}
 
 }
