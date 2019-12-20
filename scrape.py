@@ -36,7 +36,7 @@ PARSERS = {
         "preload": lambda u: lambda driver: None,
         "tds": {
             "is_info": lambda c: "tbb" in c or "tbbr" in c,
-            "is_score": lambda c: "tscoref" in c,
+            "is_score": lambda c: class_ and "tscoref" in c,
             "get_score": lambda t: t.find("span", class_="tsco"),
             "find_name": fna,
             "rounds": "th"
@@ -60,7 +60,7 @@ PARSERS = {
         "find_tabls": lambda s: [j for i, j in enumerate(s.select("a.jumpListItem1")) if i % 2 == 1],
         "preload": lambda u: lambda driver: driver.find_elements_by_css_selector("a.jumpListItem1")[int(u[-1])-1].click(),
         "tds": {
-            "is_info": lambda c: "tableauBorderBottom" in c or "tableauBorderBottomRight" in c or "tableauNameCell" in c,
+            "is_info": lambda c: ("tableauBorderBottom" in c or "tableauBorderBottomRight" in c) and "tableauNameCell" in c,
             "is_score": lambda c: 1,
             "get_score": lambda t: t.select("span.tableauReferee")[0].findParent() if t.select("span.tableauReferee") else False,
             "find_name": lambda t: t.select("span.tableauCompName")[0].text,
@@ -144,10 +144,11 @@ def parse_tableau(driver, parser):
                 if name in done: continue
                 # extract class from td
                 class_ = td.attrs.get('class')
-                if not class_: continue
+                rn = name.replace(u'\xa0', u'')  # round_names[i + offset]
+                # if not class_: continue
 
                 # if "tbb" in class_ or "tbbr" in class_:
-                if parser["tds"]["is_info"](class_):
+                if class_ and parser["tds"]["is_info"](class_):
                     # decode name
                     # player_name = td.find("span", class_="tcln").decode_contents()
                     # first_name = td.find("span", class_="tcfn")
@@ -157,7 +158,7 @@ def parse_tableau(driver, parser):
                     #     player_name += " " + first_name.decode_contents()
 
                     # add to last game or create new game if last game is full
-                    rn = name.replace(u'\xa0', u'')# round_names[i + offset]
+
                     cg = games.get(rn)
                     # check if last game is actually full or it's just score
                     if cg and (len(cg[-1]) < 2 or (len(cg[-1]) == 2 and cg[-1][-1][0].isdigit())):
@@ -165,15 +166,17 @@ def parse_tableau(driver, parser):
                     else:
                         games[rn].append([player_name])
                 # elif "tscoref" in class_:
+                # note: for some parsers class_ is not a requirement so no class_ and necessary
                 elif parser["tds"]["is_score"](class_):
                     # score = td.find("span", class_="tsco")
                     score = parser["tds"]["get_score"](td)
                     if score:
                         dc = score.decode_contents()
                         if len(dc) > 1:
-                            g=games[round_names[round_names.index(name) - 1]]
+                            g=games[round_names[round_names.index(rn) - 1]]
                             last_idx = list(filter(lambda i: not (any(j[0].isdigit() for j in g[i]) or any('BYE' in j for j in g[i])), range(0, len(g))))[0]
-                            games[round_names[round_names.index(name) - 1]][last_idx].append(dc.split("<")[0])
+                            # games[round_names[round_names.index(rn) - 1]]
+                            g[last_idx].append(dc.split("<")[0])
 
         for i in range(1): #len(round_names) - len(done) - 1):
             parser["next"](next_el())
@@ -191,16 +194,14 @@ def parse_tableau(driver, parser):
     for a, b in games.items():
         if a == '': continue
         else:
-            print("Round", a)
+            # print("Round", a)
             next_name = round_names[round_names.index(a) + 1]
-            print("Next games:")
+            # print("Next games:")
             for i, j in enumerate(games[next_name]):
-                print("\t", j)
                 b[i * 2].append(j[0])
                 if not next_name == '':
                     b[i * 2 + 1].append(j[1] if not j[1][0].isdigit() else j[2])
         for game in b:
-            print(game)
             try:
                 c, d, *e, w = game
                 if not e:
@@ -266,8 +267,8 @@ def scrape_data(event_url):
     yield combine_pools(pools), combine_tableaux(tabls)
 
 def get_events():
-    return (("Jan NAC 2017", "https://www.usfencingresults.org/results/2016-2017/./2017.01-JAN-NAC/FTEvent_2017Jan06_DV1ME.htm"),)
-    '''
+    # return (("Jan NAC 2017", "https://www.usfencingresults.org/results/2016-2017/./2017.01-JAN-NAC/FTEvent_2017Jan06_DV1ME.htm"),)
+    # '''
     # yield "April Championship and NAC", "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
     # yield "OCT NAC", "https://www.usfencingresults.org/results/2018-2019/2018.10-OCT-NAC/FTEvent_2018Oct12_DV1ME.htm"
     # return
@@ -329,7 +330,7 @@ def get_events():
     #         link = row.find_all("a")[2]
     #         if "greyedout" not in link.attrs.get('class', []):
     #             print(link['href'])\
-'''
+# '''
 
 ##    yield "April Championship and NAC", "https://www.fencingtimelive.com/events/results/2A9E29A163E94077BD9BCF4F1EF8E6EE"
 ##    yield "January NAC", "https://www.fencingtimelive.com/events/results/9828E06403B741498C70FB121ACA050B"

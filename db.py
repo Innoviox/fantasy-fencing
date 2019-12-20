@@ -43,5 +43,6 @@ for event, event_url in scrape.get_events():
     except Exception as e:
         # print(e)
         log.error(e)
+        # raise e
     conn.commit()
     conn.close()
