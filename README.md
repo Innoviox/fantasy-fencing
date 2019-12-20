@@ -4,7 +4,8 @@ not anything like fantasy football
 ## Running/building
 
 Modules to install: `pydantic`, `selenium`, `uvicorn`, `fastapi`, `beautifulsoup4`, `requests`
-for Angular: 'ngprime','npm'
+
+for Angular: `ngprime`,`npm`
 
 Run: `uvicorn main:app --reload`
 
