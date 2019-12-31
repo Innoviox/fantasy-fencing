@@ -22,6 +22,7 @@ import {
   AgmCoreModule
 } from '@agm/core';
 import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.component';
+import { FencerService } from './fencer.service';
 
 @NgModule({
   imports: [
@@ -38,10 +39,9 @@ import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.compon
   ],
   declarations: [
     AppComponent,
-    AdminLayoutComponent,
-
+    AdminLayoutComponent
   ],
-  providers: [],
+  providers: [FencerService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
