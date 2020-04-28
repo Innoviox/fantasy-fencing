@@ -20,9 +20,10 @@ class Database(tk.Tk):
             cols = [d[0] for d in cursor.description]
             tree = ttk.Treeview(self, columns=cols)
 
+            tree.heading("#0", text=cols[0])
             for col in cols[1:]:
-                tree.heading(col, text=col)
                 tree.column(col)
+                tree.heading(col, text=col)
 
             for fencer in cursor.fetchall():
                 tree.insert('', tk.END, text=fencer[0], values=fencer[1:])
