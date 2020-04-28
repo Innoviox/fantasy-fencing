@@ -18,7 +18,7 @@ class Database(tk.Tk):
             cursor.execute(f"SELECT * from '{table[0]}'")
 
             cols = [d[0] for d in cursor.description]
-            tree = ttk.Treeview(self, columns=cols)
+            tree = ttk.Treeview(self, columns=cols[1:])
 
             tree.heading("#0", text=cols[0])
             for col in cols[1:]:
