@@ -19,16 +19,18 @@ class Database(tk.Tk):
 
             cols = [d[0] for d in cursor.description]
             tree = ttk.Treeview(self, columns=cols)
-            
+
             for col in cols:
+                tree.heading(col, text=col)
                 tree.column(col)
 
             for fencer in cursor.fetchall():
                 tree.insert('', tk.END, values=fencer)
 
             self.trees.append(tree)
-            tk.Button(self, text=table, command=self.show(idx)).grid(row=0, column=idx, columnspan=1)
-            tree.grid(row=1, column=0, columnspan=len(tables))     
+            tk.Button(self, text=table, command=self.show(idx)).pack() # .grid(row=0, column=idx, columnspan=1)
+            tree.pack()
+        self.trees[0].tkraise()
         
     def show(self, i):
         return self.trees[i].tkraise
