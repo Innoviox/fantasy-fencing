@@ -25,7 +25,8 @@ class Database(tk.Tk):
                 tree.column(col)
                 tree.heading(col, text=col)
 
-            for fencer in cursor.fetchall():
+            for fencer in map(list, cursor.fetchall()):
+                fencer[-2] = fencer[-2].replace("\n", "BYE")
                 tree.insert('', tk.END, text=fencer[0], values=fencer[1:])
 
             self.trees.append(tree)
