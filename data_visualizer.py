@@ -12,13 +12,23 @@ class Database(tk.Tk):
 
         self.trees = []
 
-        for idx, table in enumerate(cursor.fetchall()):
-            self.trees.append(ttk.Treeview(self))
-        
-            self.trees[-1].insert('', 'end', text=table)
+        tables = cursor.fetchall()
 
+        for idx, table in enumerate(tables):
+            tree = ttk.Treeview(self)
+
+            cursor.execute(f"SELECT * from '{table[0]}'")
+            
+            for column in cursor.fetchall():
+                print(column)
+            
+            tree.insert('', 'end', text=table, values='1')
+
+            self.trees.append(tree)
             tk.Button(self, text=table, command=self.show(idx)).grid(row=0, column=idx)
-            self.trees[-1].grid(row=1)
+            tree.grid(row=1, column=0, columnspan=len(tables))
+
+            
         
     def show(self, i):
         return self.trees[i].tkraise
