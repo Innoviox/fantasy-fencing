@@ -20,12 +20,12 @@ class Database(tk.Tk):
             cols = [d[0] for d in cursor.description]
             tree = ttk.Treeview(self, columns=cols)
 
-            for col in cols:
+            for col in cols[1:]:
                 tree.heading(col, text=col)
                 tree.column(col)
 
             for fencer in cursor.fetchall():
-                tree.insert('', tk.END, values=fencer)
+                tree.insert('', tk.END, text=fencer[0], values=fencer[1:])
 
             self.trees.append(tree)
             tk.Button(self, text=table, command=self.show(idx)).pack() # .grid(row=0, column=idx, columnspan=1)

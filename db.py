@@ -33,6 +33,7 @@ def init_file(c):
 for event, event_url in scrape.get_events():
     log.debug(f"Looking at {event} -> {event_url}")
     # print(event, event_url)
+    # input()
     conn = sqlite3.connect(f"dbs/{event}.db")
     c = conn.cursor()
     init_file(c)
