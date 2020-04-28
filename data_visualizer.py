@@ -15,20 +15,20 @@ class Database(tk.Tk):
         tables = cursor.fetchall()
 
         for idx, table in enumerate(tables):
-            tree = ttk.Treeview(self)
-
             cursor.execute(f"SELECT * from '{table[0]}'")
+
+            cols = [d[0] for d in cursor.description]
+            tree = ttk.Treeview(self, columns=cols)
             
-            for column in cursor.fetchall():
-                print(column)
-            
-            tree.insert('', 'end', text=table, values='1')
+            for col in cols:
+                tree.column(col)
+
+            for fencer in cursor.fetchall():
+                tree.insert('', tk.END, values=fencer)
 
             self.trees.append(tree)
-            tk.Button(self, text=table, command=self.show(idx)).grid(row=0, column=idx)
-            tree.grid(row=1, column=0, columnspan=len(tables))
-
-            
+            tk.Button(self, text=table, command=self.show(idx)).grid(row=0, column=idx, columnspan=1)
+            tree.grid(row=1, column=0, columnspan=len(tables))     
         
     def show(self, i):
         return self.trees[i].tkraise
