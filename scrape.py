@@ -259,20 +259,25 @@ def rankings(event_url):
     for round in [2, 4]:
         if div := full_soup.select(f'#Round{round}Seeding'):
             table = div[0].select("table")[0]
-            for row in table.select("tr"):
-                seed, name, *_ = row
-                ranks[name].append(seed)
+            for row in table.select("tr")[1:]:
+                try:
+                    seed, name, *_ = row.select("td")
+                    ranks[name].append(seed)
+                except ValueError as e:
+                    print(e)
         else:
             for name in ranks:
-                ranks[name].append(0)
+                ranks[name].append({'text':0})
+    for name in ranks:
+        ranks[name].append({'text':0})
 
     table = full_soup.select("#finalResults")[0].select("table")[0]
-    for row in table.select("tr"):
-        seed, name, *_ = row
-        ranks[name].append(seed)
+    for row in table.select("tr")[1:]:
+        seed, name, *_ = row.select("td")
+        ranks[name][-1] = seed
 
     for (n, (p1, p2, f)) in ranks.items():
-        yield (n, p1, p2, f)
+        yield (n.text, p1.text, p2.text if p2 else 0, f.text if f else 0)
 
 def scrape_data(event_url):
     # Retrieve the full page
