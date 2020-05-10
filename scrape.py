@@ -6,6 +6,7 @@ from time     import sleep
 from re       import compile
 from json     import loads
 from logs     import log
+from collections import defaultdict
 
 CHECK_REPECHAGE = False
 
@@ -248,12 +249,40 @@ def combine_tableaux(tabls):
     for t in tabls:
         yield from t
 
+def rankings(event_url):
+    ranks = defaultdict(list)
+
+    full_soup = make_soup(event_url)
+    parser = [PARSERS[j] for i, j in EURL_TO_PARSER.items() if event_url.startswith(i)][0]
+    base = parser["base"](event_url)
+
+    for round in [2, 4]:
+        if div := full_soup.select(f'#Round{round}Seeding'):
+            table = div[0].select("table")[0]
+            for row in table.select("tr"):
+                seed, name, *_ = row
+                ranks[name].append(seed)
+        else:
+            for name in ranks:
+                ranks[name].append(0)
+
+    table = full_soup.select("#finalResults")[0].select("table")[0]
+    for row in table.select("tr"):
+        seed, name, *_ = row
+        ranks[name].append(seed)
+
+    for (n, (p1, p2, f)) in ranks.items():
+        yield (n, p1, p2, f)
+
 def scrape_data(event_url):
     # Retrieve the full page
     full_soup = make_soup(event_url)
     parser = [PARSERS[j] for i, j in EURL_TO_PARSER.items() if event_url.startswith(i)][0]
     base = parser["base"](event_url)
     # Retrieve pools link and tableau link
+
+    r = rankings(event_url)
+
     pools = []
     for pool in parser["find_pools"](full_soup): # full_soup.find_all("img", src="/img/poolInverse.png"):
         pool_url = pool.attrs['href']
@@ -264,7 +293,7 @@ def scrape_data(event_url):
         tabl_url = tabl.attrs['href']
         tabls.append(find_tabls(tabl_url, base))
 
-    yield combine_pools(pools), combine_tableaux(tabls)
+    yield combine_pools(pools), combine_tableaux(tabls), r
 
 def get_events():
     # return (("Jan NAC 2017", "https://www.usfencingresults.org/results/2016-2017/./2017.01-JAN-NAC/FTEvent_2017Jan06_DV1ME.htm"),)
@@ -340,10 +369,11 @@ def get_events():
 
 if __name__ == "__main__":
     for event, event_url in get_events():
-        for (pools, tableaus) in scrape_data(event_url):
-            for i in pools:
-                for k in i:
-                    ...
-                    #print(k)
-            for j in tableaus:
-                print(j)
+        print(event_url)
+        # for (pools, tableaus) in scrape_data(event_url):
+        #     for i in pools:
+        #         for k in i:
+        #             ...
+        #             #print(k)
+        #     for j in tableaus:
+        #         print(j)
