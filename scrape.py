@@ -267,9 +267,9 @@ def rankings(event_url):
                     print(e)
         else:
             for name in ranks:
-                ranks[name].append({'text':0})
+                ranks[name].append(0)
     for name in ranks:
-        ranks[name].append({'text':0})
+        ranks[name].append(0)
 
     table = full_soup.select("#finalResults")[0].select("table")[0]
     for row in table.select("tr")[1:]:
