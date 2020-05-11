@@ -276,8 +276,11 @@ def rankings(event_url):
         seed, name, *_ = row.select("td")
         ranks[name][-1] = seed
 
-    for (n, (p1, p2, f)) in ranks.items():
-        yield (n.text, p1.text, p2.text if p2 else 0, f.text if f else 0)
+    for (n, r) in ranks.items():
+        (p1, p2, *f) = r
+        print(p1, p2, f, r)
+        if f:
+            yield (n.text, p1.text, p2.text if p2 else 0, f[0].text if f[0] else 0)
 
 def scrape_data(event_url):
     # Retrieve the full page

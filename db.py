@@ -37,7 +37,8 @@ def init_file(c):
         final INT
     );""")
 
-for event, event_url in scrape.get_events():
+# for event, event_url in scrape.get_events():
+for event, event_url in [['2016.12-DEC-NAC', 'https://www.usfencingresults.org/results/2016-2017/./2016.12-DEC-NAC/FTEvent_2016Dec02_DV1ME.htm']]:
     log.debug(f"Looking at {event} -> {event_url}")
     # print(event, event_url)
     # input()
