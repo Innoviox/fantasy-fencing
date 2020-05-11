@@ -278,9 +278,8 @@ def rankings(event_url):
 
     for (n, r) in ranks.items():
         (p1, p2, *f) = r
-        print(p1, p2, f, r)
         if f:
-            yield (n.text, p1.text, p2.text if p2 else 0, f[0].text if f[0] else 0)
+            yield (n.text, p1.text.strip("T"), p2.text.strip("T") if p2 else 0, f[0].text.strip("T") if f[0] else 0)
 
 def scrape_data(event_url):
     # Retrieve the full page
