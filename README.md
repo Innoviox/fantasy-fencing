@@ -7,7 +7,7 @@ Modules to install: `pydantic`, `selenium`, `uvicorn`, `fastapi`, `beautifulsoup
 
 for Angular: `ngprime`,`npm`
 
-Run: `uvicorn main:app --reload`
+Run: `uvicorn api.api:api --reload`
 
 ## Ideas for data
 

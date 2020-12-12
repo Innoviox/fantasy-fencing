@@ -1,4 +1,11 @@
-from fastapi import APIRouter
+from fastapi import FastAPI
+from .endpoints import fencers
 
-api_router = APIRouter()
-api_router.include_router(fencers.router, prefix="/fencers", tags=["users"])
+api = FastAPI()
+
+api.include_router(fencers.router, prefix="/fencers", tags=["users"])
+
+
+@api.get("/")
+async def root():
+    return {"message": "Hello Bigger Applications!"}
