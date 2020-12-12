@@ -15,3 +15,6 @@ class Fencer(BaseModel):
 
     scores: List[List[int]]
     opponents: List[List[str]]
+
+    class Config:
+        orm_mode = True
