@@ -3,9 +3,7 @@ from selenium import webdriver
 from selenium.webdriver.support.select import Select
 from requests import get
 from time     import sleep
-from re       import compile
-from json     import loads
-from logs     import log
+from data.logs import log
 from collections import defaultdict
 
 CHECK_REPECHAGE = False
