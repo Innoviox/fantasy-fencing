@@ -4,42 +4,18 @@ import os
 from collections import defaultdict
 from data.logs import log
 
-full_connection = sqlite3.connect("dbs/aggregated.db")
+full_connection = sqlite3.connect("dbs/fencers.db")
 full_cursor = full_connection.cursor()
-        
-def _init_cursor():
-    try:
-        full_cursor.execute("DROP TABLE fencers;")
-    except sqlite3.OperationalError as s3oe:
-        print(s3oe)
-        pass
-    full_cursor.execute("""CREATE TABLE fencers (
-    id int,
-    name TEXT,
-    last_name TEXT,
-    birthdate int,
-    club TEXT,
-    ratings TEXT,
-    country TEXT,
-    tournaments TEXT,
-    stats TEXT,
-    matches TEXT
-);""")
-    full_connection.commit()
 
-def find_fencer(name):
-    csv_reader = csv.DictReader(open("dbs/members.csv"))
-    last, first, *initial = name.split()
-    
-    for row in csv_reader:
-        if row['Last Name'].upper() == last.upper() and first.upper() in row['First Name'].upper(): # to cover nicknames
-            return row
+def parse_name(name):
+    n = ' '.join(i.title() for i in name.split()).split('(')[0].strip()
+    if ',' not in n:
+        n = n.split()
+        n = ' '.join(n[:-1]) + ', ' + n[-1]
+    return n
 
-def get_fencer(name, lname=None):
-    if lname:
-        full_cursor.execute(f"SELECT * FROM fencers WHERE last_name=?", [lname])
-        return full_cursor.fetchone()
-    full_cursor.execute(f"SELECT * FROM fencers WHERE name = ?", [name])
+def get_fencer(name):
+    full_cursor.execute(f"SELECT * FROM fencers WHERE name LIKE \"%{parse_name(name)}%\"")
     return full_cursor.fetchone()
 
 def analyze_db(file):
@@ -47,27 +23,21 @@ def analyze_db(file):
     conn = sqlite3.connect(file)
     c = conn.cursor()
 
-    log.info("Connected to fencers database")
+    # log.info("Connected to fencers database")
     total, not_in = 0, 0
     for fencer in c.execute("SELECT * FROM fencers"):
         total += 1
         id_, name, v, vom, ts, tr, i, ms, ma = fencer
         prev_row = get_fencer(name)
         if not prev_row:
-            db_fencer = find_fencer(name)
-            if not db_fencer:
-                not_in += 1
-                log.warning(f"Fencer {name} not found in members.csv")
-                db_fencer = defaultdict(str)
-            full_cursor.execute("INSERT INTO fencers VALUES (?,?,?,?,?,?,?,?,?,?)", (db_fencer["Member #"], name, name.split()[0].upper(),
-                                db_fencer["Birthdate"], db_fencer["Club 1 Name"], ','.join([db_fencer[i] for i in ("Saber", "Epee", "Foil")]),
-                                db_fencer["Representing Country"],'','',''))
-            prev_row = get_fencer(name)
-        *_, tournaments, stats, matches = prev_row
-        full_cursor.execute("UPDATE fencers SET tournaments = ?, stats = ?, matches = ? WHERE name=?",
-                           (tournaments+"::"+file.split(".")[0].split("/")[1], stats+"::"+'.'.join([v, vom, ts, tr, i, ms, ma]), matches+"::", name))
+            not_in += 1
+            # print(name)
+            # log.warning(f"Fencer {name} ({parse_name(name)}) not found in members.csv")
     full_connection.commit()
-    log.debug(f"Could not find data on {not_in} fencers out of {total} total. ({not_in/total})")
+    if total != 0:
+        log.debug(f"Could not find data on {not_in} fencers out of {total} total. ({not_in/total})")
+    else:
+        log.error("No fencers.")
     log.info("Connected to games database")
     total, not_in1, not_in2 = 0, 0, 0
     for game in c.execute("SELECT * FROM games"):
@@ -102,10 +72,19 @@ def analyze_db(file):
     conn.close()
     full_connection.commit()
 
+    return (total, not_in)
+
 if __name__ == "__main__":
-    _init_cursor()
-    for file in reversed(os.listdir("dbs/")):
-        if not file.endswith(".db") or file.startswith("agg"): continue
-        analyze_db("dbs/"+file)
+    a, b = 0, 0
+    for file in sorted(os.listdir("dbs/")):
+        if not file.endswith(".db") or file.startswith("agg") or file.startswith("fencers"): continue
+        # try:
+        t, n = analyze_db("dbs/"+file)
+        a += t; b += n
+        # except Exception as e:
+        #     log.error(f"exception: {e}")
+        # exit()
+
+    log.debug(f"Finished; missing {b} out of {a} ({b / a})")
     full_connection.commit()
     full_connection.close()
