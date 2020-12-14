@@ -1,0 +1,12 @@
+{% extends "UI/dashboard.html" %}
+{% load static %}
+
+{% block body %}
+<ul class="fencer"></ul>
+    {% for fencer in fencers %}
+    <div class="fencer">
+        <h1> Fencers name: {{ fencer.first_name }} {{ fencer.last_name }} </h1>
+        <h2> Weapon: {{ fencer.weapon }} Rating: {{fencer.rating }} </h2>
+    </div>
+    {% endfor %}
+{% endblock %}

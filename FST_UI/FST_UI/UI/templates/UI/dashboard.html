@@ -1,0 +1,40 @@
+{% load static %}
+
+<html lang="en">
+<head>
+
+    <title>Dashboard</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" type='text/css' href="UI/static/UI/styles.css">
+    <script src="fencer.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+
+      <a class="navbar-brand" href="{% url 'index' %}">Fencer-DB</a>
+
+        <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+          <li class="nav-item active">
+            <a class="nav-link" href="{% url 'index' %}">Home <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" href="{% url 'fencers' %}">Search fencers</a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" href="#">Personal Data</a>
+          </li>
+            <li class="nav-item ">
+            <a class="nav-link " href="{% url 'logout' %}">Log Out</a>
+          </li>
+        </ul>
+          <span class="navbar-text pull-right">
+          {{ request.user.email }}
+        </span>
+
+    </nav>
+    <h1> Welcome to Fencing Stat Tracker! </h1>
+    {% block body %}
+   {% endblock %}
+</body>
+</html>
