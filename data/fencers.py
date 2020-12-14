@@ -20,8 +20,9 @@ def init_file(c):
     ranking int,
     
     matches int,
-    winrate float
+    wins    int
 );""")
+
 
 def name(row):
     m = row['Middle Name'] or ''
@@ -32,7 +33,8 @@ def name(row):
     if s:
         s = ' ' + s
 
-    return f"{row['Last Name'].title()}{s}, {row['First Name'].title()}" # {m}
+    return f"{row['Last Name'].title()}{s}, {row['First Name'].title()}"  # {m}
+
 
 log.debug(f"Writing fencer database")
 conn = sqlite3.connect(f"dbs/fencers.db")
@@ -43,13 +45,13 @@ with open("members.csv") as members:
     id = 0
     for row in csv.DictReader(members):
         c.execute("INSERT INTO fencers VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (id,
-                                                                       row['Member #'],
-                                                                       name(row),
-                                                                       row['Birthdate'],
-                                                                       row['Epee'],
-                                                                       '',
-                                                                       0,
-                                                                       0.0))
+                                                                          row['Member #'],
+                                                                          name(row),
+                                                                          row['Birthdate'],
+                                                                          row['Epee'],
+                                                                          '',
+                                                                          0,
+                                                                          0))
         id += 1
 
 with open("ME Sr R 2020 03 08.pdf", "rb") as f:
@@ -64,9 +66,10 @@ for page in pdf:
             if r.isnumeric():
                 yr_idx = next(i for (i, j) in enumerate(l) if len(j) == 4 and j.isnumeric())
                 name = ' '.join(l[1:yr_idx]).strip('# ')
-                if len(name.split()[-1]) == 1: # remove middle initial
+                if len(name.split()[-1]) == 1:  # remove middle initial
                     name = name[:-2]
-                c.execute("UPDATE fencers SET ranking = ? WHERE name = ? and birthdate = ?", (int(r), name, int(l[yr_idx])))
+                c.execute("UPDATE fencers SET ranking = ? WHERE name = ? and birthdate = ?",
+                          (int(r), name, int(l[yr_idx])))
 
 conn.commit()
 conn.close()

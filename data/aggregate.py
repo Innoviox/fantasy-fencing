@@ -40,32 +40,22 @@ def analyze_db(file):
         log.error("No fencers.")
     log.info("Connected to games database")
     total, not_in1, not_in2 = 0, 0, 0
+    fencers = defaultdict(lambda: [0, 0])
+
     for game in c.execute("SELECT * FROM games"):
         total += 1
         id_, p1, p2, score, round_, winner = game
-        if p2[0].isdigit():
-            score, p2 = p2, score
-        l1 = p1.split()[0]
-        l2 = p2.split()[0]
-        w = winner.split()[0]
-        if p1 != "- BYE -":
-            p1_row = get_fencer(p1, lname=l1)
-            if not p1_row:
-                not_in1 += 1
-                log.error(f"Fencer p1-{p1}-{l1} not found in fencers")
-            else:
-                *_, m1 = p1_row
-                full_cursor.execute("UPDATE fencers SET matches = ? WHERE last_name=?", [m1+f",{l2}/{score}/{1 if w == l1 else 0}", l1])
 
-        if p2 != "- BYE -":
-            p2_row = get_fencer(p2, lname=l2)
-            if not p2_row:
-                not_in2 += 1
-                log.error(f"Fencer p2-{p2}-{l2} not found in fencers")
-            else:
-                *_, m2 = p2_row
-                full_cursor.execute("UPDATE fencers SET matches = ? WHERE last_name=?", [m2+f",{l1}/{score}/{1 if w == l2 else 0}", l2])
-    if not_in1 or not_in2:
+        fencers[p1][0] += 1
+        fencers[p2][0] += 1
+
+        fencers[winner][1] += 1
+
+    for f, (m, w) in fencers.items():
+        if r := get_fencer(f):
+            full_cursor.execute(f"UPDATE fencers SET matches = ?, wins = ? WHERE name LIKE \"%{parse_name(f)}%\"", (r[-2] + m, r[-1] + w))
+
+    if total and (not_in1 or not_in2):
         log.debug(f"Could not find data on {not_in1}+{not_in2}={not_in1+not_in2} fencers out of {total} total. ({(not_in1+not_in2)/(total*2)})")
     log.info(f"Finished with {file}.")
     conn.commit()
