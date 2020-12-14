@@ -18,6 +18,6 @@ class Fencer(models.Model):
     )
     weapon = models.CharField(max_length=1, choices=WEAPONS)
     rating = models.CharField(max_length=1, blank=True)
-
-    def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.rating})"
+    #
+    # def __str__(self):
+    #     return f"{self.first_name} {self.last_name} ({self.rating})"

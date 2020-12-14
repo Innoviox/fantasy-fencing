@@ -1,18 +1,41 @@
+import json
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.shortcuts import HttpResponse, HttpResponseRedirect, render
 from django.db import IntegrityError
+from django.http import JsonResponse
 
-from .models import User
+from .models import User, Fencer
 # Create your views here.
 
 def index(request):
-    return render(request, "UI/dashboard.html")
+    if request.user.is_authenticated:
+        return render(request, "UI/dashboard.html")
+    else:
+        return HttpResponseRedirect(reverse("login"))
 
-def find_fencer(request, first_name, last_name):
-    return render(request, "UI/fencer.html")
+
+def fencers(request):
+
+    # Query for requested email
+    try:
+        fencers = Fencer.objects.all()
+    except Fencer.DoesNotExist:
+        return JsonResponse({"error": "Fencer not found."}, status=404)
+
+    # Return email contents
+    if request.method == "GET":
+        return render(request, "UI/fencer.html", {
+            'fencers': fencers
+        })
+
+    # Email must be via GET or PUT
+    else:
+        return JsonResponse({
+            "error": "GET request required."
+        }, status=400)
 
 # login stuff
 

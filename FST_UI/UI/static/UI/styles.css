@@ -1,0 +1,19 @@
+.fencer{
+  background-color: white;
+  animation-name: color;
+  border-radius: 10px;
+  margin: 10px;
+  border: 2px solid #73AD21;
+  padding: 20px;
+  border-color: grey;
+    font-family: 'Times New Roman';
+}
+.fencer:hover{
+      background-color: grey;
+  border-radius: 10px;
+  margin: 10px;
+  border: 2px solid #73AD21;
+  padding: 20px;
+  border-color: grey;
+    font-family: 'Times New Roman';
+}
