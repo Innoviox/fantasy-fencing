@@ -3,7 +3,7 @@ not anything like fantasy football
 
 ## Running/building
 
-Modules to install: `pydantic`, `selenium`, `uvicorn`, `fastapi`, `beautifulsoup4`, `requests`, 'sqlalchemy'
+Modules to install: `pydantic`, `selenium`, `uvicorn`, `fastapi`, `beautifulsoup4`, `requests`, `sqlalchemy`
 
 Run: `uvicorn api.api:api --reload`
 
