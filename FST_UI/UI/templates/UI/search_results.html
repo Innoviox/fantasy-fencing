@@ -1,19 +1,13 @@
 {% extends "UI/dashboard.html" %}
-{% load static %}
+
 
 {% block body %}
-
-    <form action="{% url 'search' %}" method="post">
-        {% csrf_token %}
-        {{ form }}
-        <input type="submit">
-    </form>
-
     <div>
-       <h2 > View Fencers</h2>
+        <h2> Search Results </h2>
+          <a href="{% url 'search' %}">Search for more</a>
         <ul>
             {% for fencer in fencers %}
-            <li>
+           <li>
                 <div class="fencer">
                     <h2> Fencers name: {{ fencer.first_name }} {{ fencer.last_name }} </h2>
                     <h3> Weapon: {{ fencer.weapon }} Rating: {{fencer.rating }} </h3>
@@ -22,5 +16,4 @@
             {% endfor %}
         </ul>
     </div>
-
 {% endblock %}

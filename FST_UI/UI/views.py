@@ -6,9 +6,13 @@ from django.urls import reverse
 from django.shortcuts import HttpResponse, HttpResponseRedirect, render
 from django.db import IntegrityError
 from django.http import JsonResponse
+from django import forms
 
 from .models import User, Fencer
 # Create your views here.
+
+class SearchForm(forms.Form):
+    search = forms.CharField(label="Search")
 
 def index(request):
     if request.user.is_authenticated:
@@ -36,6 +40,30 @@ def fencers(request):
         return JsonResponse({
             "error": "GET request required."
         }, status=400)
+
+
+def get_search(request):
+    # if this is a POST request we need to process the form data
+    if request.method == 'POST':
+        # create a form instance and populate it with data from the request:
+        form = SearchForm(request.POST)
+        # check whether it's valid:
+        if form.is_valid():
+
+            search = form.cleaned_data['search']
+            results = []
+            for fencer in Fencer.objects.all():
+                if search.upper() in fencer.last_name.upper() or search.upper() in fencer.first_name.upper():
+                    results.append(fencer)
+            return render(request, 'UI/search_results.html', {'fencers': results})
+
+    # if a GET (or any other method) we'll create a blank form
+    else:
+        form = SearchForm()
+
+    return render(request, 'UI/fencer.html', {'form': form, 'fencers': Fencer.objects.all()})
+
+
 
 # login stuff
 
