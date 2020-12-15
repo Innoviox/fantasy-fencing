@@ -15,7 +15,9 @@ async def root():
 
 @router.get("/{id_num}", response_model=models.fencer.Fencer)
 async def get_fencer_by_id(id_num: int, db: Session = Depends(get_db)):
-    db_user = crud.fencer.get_by_id(db, id_num)
-    if db_user is None:
+    db_user = crud.fencer.get_by_id(db, id_num)  # get fencer from crud
+
+    if db_user is None:  # no user found => give an error page
         raise HTTPException(status_code=404, detail="Fencer not found")
-    return db_user
+
+    return db_user  # fastapi will convert the object to JSON

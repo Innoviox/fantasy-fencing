@@ -1,3 +1,12 @@
+"""
+Boilerplate: database.py, models/, schema/
+utils.py: helpful functions :)
+crud/: Create Read Update Delete: functions that access the database
+endpoints/: where the actual api is
+data/: data scraping and manipulation
+    data/dbs/: all the databases
+"""
+
 from fastapi import FastAPI
 
 from .endpoints import fencer
