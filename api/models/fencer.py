@@ -4,17 +4,15 @@ from pydantic import BaseModel
 
 class Fencer(BaseModel):
     id: int
+    member_id: int
     name: str
+    birthdate: int
 
-    victories: int
-    victory_percentage: float
+    rating: str
+    ranking: str
 
-    touches_scored: List[int]
-    touches_received: List[int]
-    indicator: List[int]
-
-    scores: List[List[int]]
-    opponents: List[List[str]]
+    matches: int
+    wins: int
 
     class Config:
         orm_mode = True

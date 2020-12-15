@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from api.models.fencer import Fencer
+from api.schema.fencer import Fencer
 
 
 def get_by_id(db: Session, id_num: int):

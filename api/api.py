@@ -9,11 +9,8 @@ Base.metadata.create_all(bind=engine)
 
 api = FastAPI()
 
-api.include_router(fencer.router, prefix="/fencers", tags=["users"])
+api.include_router(fencer.router, prefix="/fencer", tags=["users"])
 
-'''
-# , db: Session = Depends(get_db)
-'''
 
 @api.get("/")
 async def root():
