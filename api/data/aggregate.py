@@ -1,8 +1,7 @@
 import sqlite3
-import csv
 import os
 from collections import defaultdict
-from data.logs import log
+from api.data.logs import log
 
 full_connection = sqlite3.connect("dbs/fencers.db")
 full_cursor = full_connection.cursor()

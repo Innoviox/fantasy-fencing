@@ -2,7 +2,7 @@ import sqlite3
 import pdftotext
 import csv
 
-from data.logs import log
+from api.data.logs import log
 
 
 def init_file(c):

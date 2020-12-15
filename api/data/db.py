@@ -1,7 +1,7 @@
 import sqlite3
 
-from data import scrape
-from data.logs import log
+from api.data import scrape
+from api.data.logs import log
 
 def init_file(c):
     try:
