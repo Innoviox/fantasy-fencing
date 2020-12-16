@@ -22,7 +22,7 @@
             <a class="nav-link" href="{% url 'search' %}">Search fencers</a>
           </li>
           <li class="nav-item active">
-            <a class="nav-link" href="#">Personal Data</a>
+            <a class="nav-link" href="{% url 'fencer' 5179 %}">Personal Data</a>
           </li>
             <li class="nav-item ">
             <a class="nav-link " href="{% url 'logout' %}">Log Out</a>
@@ -33,7 +33,6 @@
         </span>
 
     </nav>
-    <h1> Welcome to Fencing Stat Tracker! </h1>
     {% block body %}
    {% endblock %}
 </body>

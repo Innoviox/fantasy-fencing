@@ -9,5 +9,7 @@ urlpatterns = [
     path("register", views.register, name="register"),
     path("fencers", views.fencers, name="fencers"),
     path("search", views.get_search, name="search"),
+    path("fencer/<int:id>", views.find_fencer, name="fencer"),
+    # path("<str:fencername>", views.spec_data, name="page"),
     path('', views.index, name='index')
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

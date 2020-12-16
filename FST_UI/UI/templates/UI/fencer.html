@@ -4,10 +4,15 @@
 {% block body %}
 
     <form action="{% url 'search' %}" method="post">
+
         {% csrf_token %}
-        {{ form }}
-        <input type="submit">
+        <div class="form-group">
+            {{ form }}
+             <input class="btn btn-primary" type="submit">
+        </div>
+
     </form>
+
 
     <div>
        <h2 > View Fencers</h2>

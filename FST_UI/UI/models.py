@@ -21,3 +21,18 @@ class Fencer(models.Model):
     #
     # def __str__(self):
     #     return f"{self.first_name} {self.last_name} ({self.rating})"
+#
+# class Fencer(BaseModel):
+#     id: int
+#     member_id: int
+#     name: str
+#     birthdate: int
+#
+#     rating: str
+#     ranking: str
+#
+#     matches: int
+#     wins: int
+#
+#     class Config:
+#         orm_mode = True

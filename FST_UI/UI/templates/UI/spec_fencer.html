@@ -1,0 +1,12 @@
+{% extends "UI/dashboard.html" %}
+{% load mathfilters %}
+
+{% block body %}
+ <h2> name: {{ fencer.name }} </h2>
+ <h2> birth year: {{ fencer.birthdate }} </h2>
+ <h2> rating: {{ fencer.rating }} </h2>
+ <h2> snr ranking: {{ fencer.ranking }} </h2>
+ <h2> total DE bouts: {{ fencer.matches }}, number of wins: {{ fencer.wins }} </h2>
+ <h2> winrate: {{ fencer.wins|div:fencer.matches|mul:100 }} %</h2>
+
+{% endblock %}

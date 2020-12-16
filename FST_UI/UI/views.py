@@ -1,4 +1,5 @@
 import json
+import requests
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -11,31 +12,43 @@ from django import forms
 from .models import User, Fencer
 # Create your views here.
 
+
 class SearchForm(forms.Form):
     search = forms.CharField(label="Search")
 
+
 def index(request):
     if request.user.is_authenticated:
-        return render(request, "UI/dashboard.html")
+        return render(request, "UI/homepage.html")
     else:
         return HttpResponseRedirect(reverse("login"))
 
 
+def find_fencer(request, id):
+    fencer = requests.get(f"http://127.0.0.1:3000/fencer/{id}").json()
+    # check if the json has a detail key, b/c if it does it has thrown an error
+    if "detail" in fencer:
+        return render(request, "UI/error.html", {
+            "error": fencer["detail"]
+        })
+    else:
+        return render(request, "UI/spec_fencer.html", {
+            "fencer": fencer
+        })
+
+
 def fencers(request):
 
-    # Query for requested email
     try:
         fencers = Fencer.objects.all()
     except Fencer.DoesNotExist:
         return JsonResponse({"error": "Fencer not found."}, status=404)
 
-    # Return email contents
     if request.method == "GET":
         return render(request, "UI/fencer.html", {
             'fencers': fencers
         })
 
-    # Email must be via GET or PUT
     else:
         return JsonResponse({
             "error": "GET request required."
@@ -49,7 +62,6 @@ def get_search(request):
         form = SearchForm(request.POST)
         # check whether it's valid:
         if form.is_valid():
-
             search = form.cleaned_data['search']
             results = []
             for fencer in Fencer.objects.all():
@@ -63,6 +75,18 @@ def get_search(request):
 
     return render(request, 'UI/fencer.html', {'form': form, 'fencers': Fencer.objects.all()})
 
+
+# def spec_data(request, id):
+#     try:
+#         #use whatever ID to get the fencer
+#         fencer = Fencer.objects.get(title=pagename)
+#         return render(request, "UI/spec_fencer.html", {
+#             "fencer": fencer
+#         })
+#     except Fencer.DoesNotExist:
+#         return render(request, "recipes/error.html", {
+#             "error": pagename
+#         })
 
 
 # login stuff
