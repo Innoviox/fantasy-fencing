@@ -21,3 +21,8 @@ async def get_fencer_by_id(id_num: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Fencer not found")
 
     return db_user  # fastapi will convert the object to JSON
+
+
+# /all -> dont return people where matches == 0
+# womens
+# other weapons
